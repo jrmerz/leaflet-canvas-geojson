@@ -1,0 +1,13 @@
+{
+  "name": "test",
+  "version": "0.0.0",
+  "homepage": "https://github.com/ucd-cws/leaflet-canvas-geojson",
+  "authors": [
+    "Justin Merz <jrmerz@gmail.com>"
+  ],
+  "license": "MIT",
+  "dependencies": {
+    "jquery": "~2.1.4",
+    "leaflet": "~0.7.3"
+  }
+}
