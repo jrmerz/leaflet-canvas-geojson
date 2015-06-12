@@ -25,6 +25,48 @@ markerLayer.addTo(map);
 
 
 
+$.get('http://localhost:3007/rest/getNetwork', function(resp){
+  for( var i = 0; i < resp.length; i++ ) {
+
+    var feature = {
+      geojson : resp[i],
+      size : 10,
+      render : function(ctx, xyPoints, map) {
+        var render = this.geojson.properties.render || {};
+
+        if( this.geojson.geometry.type == 'Point' ) {
+          ctx.beginPath();
+
+          ctx.arc(xyPoints.x, xyPoints.y, this.size, 0, 2 * Math.PI, false);
+          ctx.fillStyle = render.hover ? 'red' : 'rgba(0, 0, 0, .3)';
+          ctx.lineWidth = 2;
+          ctx.strokeStyle = 'green';
+
+        } else if ( this.geojson.geometry.type == 'LineString' ) {
+
+          ctx.beginPath();
+          ctx.strokeStyle = render.hover ? 'red' : 'orange';
+          ctx.fillStyle = 'rgba(0, 0, 0, .3)';
+          ctx.lineWidth = 2;
+
+          for( j = 0; j < xyPoints.length; j++ ) {
+            if( j == 0 ) ctx.moveTo(xyPoints[j].x, xyPoints[j].y);
+            else ctx.lineTo(xyPoints[j].x, xyPoints[j].y);
+          }
+
+        }
+
+        ctx.stroke();
+        ctx.fill();
+      }
+    }
+
+    markerLayer.addFeature(feature);
+  }
+
+  markerLayer.render();
+});
+
 $.get('http://localhost:3007/rest/getRegions', function(resp){
 
   for( var i = 0; i < resp.length; i++ ) {
@@ -41,10 +83,18 @@ $.get('http://localhost:3007/rest/getRegions', function(resp){
         ctx.fillStyle = 'rgba(0, 0, 0, .3)';
         ctx.lineWidth = 4;
 
-        for( j = 0; j < xyPoints.length; j++ ) {
-          if( j == 0 ) ctx.moveTo(xyPoints[j].x, xyPoints[j].y);
-          else ctx.lineTo(xyPoints[j].x, xyPoints[j].y);
+        if( xyPoints.length > 500 ) {
+          for( j = 0; j < xyPoints.length; j += 50 ) {
+            if( j == 0 ) ctx.moveTo(xyPoints[j].x, xyPoints[j].y);
+            else ctx.lineTo(xyPoints[j].x, xyPoints[j].y);
+          }
+        } else {
+          for( j = 0; j < xyPoints.length; j++ ) {
+            if( j == 0 ) ctx.moveTo(xyPoints[j].x, xyPoints[j].y);
+            else ctx.lineTo(xyPoints[j].x, xyPoints[j].y);
+          }
         }
+
 
         ctx.stroke();
         ctx.fill();
@@ -54,6 +104,5 @@ $.get('http://localhost:3007/rest/getRegions', function(resp){
     markerLayer.addFeature(feature);
   }
 
-  console.log(markerLayer.features);
   markerLayer.render();
 });

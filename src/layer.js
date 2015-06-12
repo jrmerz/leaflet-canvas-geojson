@@ -322,6 +322,8 @@ L.CanvasGeojsonLayer = L.Class.extend({
     var mpp = this.utils.metersPerPx(e.latlng, this._map);
     var r = mpp * 5; // 5 px radius buffer;
 
+    var xyPoint = [e.layerPoint.x, e.layerPoint.y];
+
     var center = {
       type : 'Point',
       coordinates : [e.latlng.lng, e.latlng.lat]
@@ -334,9 +336,10 @@ L.CanvasGeojsonLayer = L.Class.extend({
 
       if( !f.visible ) continue;
       if( !f.geojson.geometry ) continue;
+      if( !f.cache.geoXY ) continue;
       if( f.bounds && !f.bounds.contains(e.latlng) ) continue;
 
-      if( this.utils.geometryWithinRadius(f.geojson.geometry, center, r) ) {
+      if( this.utils.geometryWithinRadius(f.geojson.geometry, f.cache.geoXY, center, xyPoint, f.size ? (f.size * mpp) : r) ) {
         intersects.push(f.geojson);
       }
     }
@@ -347,7 +350,6 @@ L.CanvasGeojsonLayer = L.Class.extend({
     }
 
     var mouseover = [], mouseout = [], mousemove = [];
-
 
     for( var i = 0; i < intersects.length; i++ ) {
       if( this.intersectList.indexOf(intersects[i]) > -1 ) {

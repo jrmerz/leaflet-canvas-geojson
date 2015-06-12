@@ -36,12 +36,17 @@ module.exports = {
     return L.latLngBounds(southWest, northEast);
   },
 
-  geometryWithinRadius : function(geometry, center, radius) {
+  geometryWithinRadius : function(geometry, xyPoints, center, xyPoint, radius) {
     if (geometry.type == 'Point') {
       return this.pointDistance(geometry, center) <= radius;
     } else if (geometry.type == 'LineString' ) {
 
-      // TODO
+      for( var i = 1; i < xyPoints.length; i++ ) {
+        if( this.lineIntersectsCircle(xyPoints[i-1], xyPoints[i], xyPoint, 3) ) {
+          return true;
+        }
+      }
+
       return false;
     } else if (geometry.type == 'Polygon') {
       return this.pointInPolygon(center, geometry);
@@ -49,11 +54,19 @@ module.exports = {
   },
 
   // http://math.stackexchange.com/questions/275529/check-if-line-intersects-with-circles-perimeter
-  lineIntersectsCircle : function() {
-    return (Math.abs((l2.lat() - l1.lat())*c.lat() +  c.lng()*(l1.lng() -
-     l2.lng()) + (l1.lat() - l2.lat())*l1.lng() +
-     (l1.lng() - l2.lng())*c.lat())/ Math.sqrt((l2.lat() - l1.lat())^2 +
-     (l1.lng() - l2.lng())^2) <= r)
+  // https://en.wikipedia.org/wiki/Distance_from_a_point_to_a_line
+  // [lng x, lat, y]
+  lineIntersectsCircle : function(lineP1, lineP2, point, radius) {
+    var t =
+      (Math.abs(
+        (lineP2.y - lineP1.y)*point[0] - (lineP2.x - lineP1.x)*point[1] + lineP2.x*lineP1.y - lineP2.y*lineP1.x
+      ) /
+      Math.sqrt(
+        Math.pow(lineP2.y - lineP1.y, 2) + Math.pow(lineP2.x - lineP1.x, 2)
+      ));
+
+    console.log(t+' <= '+radius);
+    return t <= radius;
   },
 
   // http://wiki.openstreetmap.org/wiki/Zoom_levels
@@ -76,10 +89,10 @@ module.exports = {
       lat1 = pt1.coordinates[1],
       lon2 = pt2.coordinates[0],
       lat2 = pt2.coordinates[1],
-      dLat = gju.numberToRadius(lat2 - lat1),
-      dLon = gju.numberToRadius(lon2 - lon1),
-      a = Math.pow(Math.sin(dLat / 2), 2) + Math.cos(gju.numberToRadius(lat1))
-        * Math.cos(gju.numberToRadius(lat2)) * Math.pow(Math.sin(dLon / 2), 2),
+      dLat = this.numberToRadius(lat2 - lat1),
+      dLon = this.numberToRadius(lon2 - lon1),
+      a = Math.pow(Math.sin(dLat / 2), 2) + Math.cos(this.numberToRadius(lat1))
+        * Math.cos(this.numberToRadius(lat2)) * Math.pow(Math.sin(dLon / 2), 2),
       c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
     return (6371 * c) * 1000; // returns meters
   },
@@ -138,5 +151,9 @@ module.exports = {
     }
 
     return inside
+  },
+
+  numberToRadius : function (number) {
+    return number * Math.PI / 180;
   }
 };
