@@ -163,9 +163,13 @@ L.CanvasGeojsonLayer = L.Class.extend({
     var bounds = this._map.getBounds();
     var zoom = this._map.getZoom();
 
+    var t;
+    if( this.debug ) t = new Date().getTime();
     for( var i = 0; i < this.features.length; i++ ) {
       this.redrawFeature(this.features[i], bounds, zoom, diff);
     }
+
+    if( this.debug ) console.log('Render time: '+(new Date().getTime() - t)+'ms');
   },
 
   // redraw an individual feature
@@ -251,7 +255,7 @@ L.CanvasGeojsonLayer = L.Class.extend({
     }
   },
 
-  addFeature : function(feature) {
+  addFeature : function(feature, bottom) {
     if( !feature.geojson ) return;
     if( !feature.geojson.geometry ) return;
 
@@ -272,7 +276,12 @@ L.CanvasGeojsonLayer = L.Class.extend({
       return;
     }
 
-    this.features.push(feature);
+    if( bottom ) this.features.unshift(feature);
+    else this.features.push(feature);
+  },
+
+  addFeatureBottom : function(feature) {
+    this.addFeature(feature, true);
   },
 
   render: function(e) {
@@ -329,6 +338,29 @@ L.CanvasGeojsonLayer = L.Class.extend({
 
     var f;
     var intersects = [];
+
+    /*
+    var checkCount = {
+      total : 0,
+      time : new Date().getTime(),
+      Point : {
+        total : 0,
+        timeTotal : 0,
+        avgTime : 0
+      },
+      LineString : {
+        total : 0,
+        timeTotal : 0,
+        avgTime : 0
+      },
+      Polygon : {
+        total : 0,
+        timeTotal : 0,
+        avgTime : 0
+      },
+    };
+    */
+
     for( var i = 0; i < this.features.length; i++ ) {
       f = this.features[i];
 
@@ -338,10 +370,31 @@ L.CanvasGeojsonLayer = L.Class.extend({
       if( !f.cache.geoXY ) continue;
       if( f.bounds && !f.bounds.contains(e.latlng) ) continue;
 
-      if( this.utils.geometryWithinRadius(f.geojson.geometry, f.cache.geoXY, center, e.layerPoint, f.size ? (f.size * mpp) : r) ) {
+      //checkCount.total++;
+      //checkCount[f.geojson.geometry.type].total++;
+      //var t = new Date().getTime();
+
+      if( this.utils.geometryWithinRadius(f.geojson.geometry, f.cache.geoXY, center, e.containerPoint, f.size ? (f.size * mpp) : r) ) {
         intersects.push(f.geojson);
       }
+
+      //checkCount[f.geojson.geometry.type].timeTotal += (new Date().getTime() - t);
     }
+
+    /* for debug
+    if( checkCount.Point.total > 0 ) {
+      checkCount.Point.avgTime =  checkCount.Point.timeTotal / checkCount.Point.total;
+    }
+    if( checkCount.LineString.total > 0 ) {
+      checkCount.LineString.avgTime =  checkCount.LineString.timeTotal / checkCount.LineString.total;
+    }
+    if( checkCount.Polygon.total > 0 ) {
+      checkCount.Polygon.avgTime =  checkCount.Polygon.timeTotal / checkCount.Polygon.total;
+    }
+    checkCount.time = new Date().getTime() - checkCount.time;
+
+    console.log(checkCount);
+    */
 
     if( e.type == 'click' && this.onClick ) {
       this.onClick(intersects);
@@ -350,16 +403,19 @@ L.CanvasGeojsonLayer = L.Class.extend({
 
     var mouseover = [], mouseout = [], mousemove = [];
 
+    var changed = false;
     for( var i = 0; i < intersects.length; i++ ) {
       if( this.intersectList.indexOf(intersects[i]) > -1 ) {
         mousemove.push(intersects[i]);
       } else {
+        changed = true;
         mouseover.push(intersects[i]);
       }
     }
 
     for( var i = 0; i < this.intersectList.length; i++ ) {
       if( intersects.indexOf(this.intersectList[i]) == -1 ) {
+        changed = true;
         mouseout.push(this.intersectList[i]);
       }
     }
@@ -371,5 +427,7 @@ L.CanvasGeojsonLayer = L.Class.extend({
     if( this.onMouseOut && mouseout.length > 0 ) this.onMouseOut.call(this, mouseout);
 
     if( this.debug ) console.log('intersects time: '+(new Date().getTime() - t)+'ms');
+
+    if( changed ) this.render();
   }
 });

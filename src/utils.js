@@ -59,17 +59,14 @@ module.exports = {
   // https://en.wikipedia.org/wiki/Distance_from_a_point_to_a_line
   // [lng x, lat, y]
   lineIntersectsCircle : function(lineP1, lineP2, point, radius) {
-    var t =
-      (Math.abs(
+    var distance =
+      Math.abs(
         ((lineP2.y - lineP1.y)*point.x) - ((lineP2.x - lineP1.x)*point.y) + (lineP2.x*lineP1.y) - (lineP2.y*lineP1.x)
       ) /
       Math.sqrt(
         Math.pow(lineP2.y - lineP1.y, 2) + Math.pow(lineP2.x - lineP1.x, 2)
-      ));
-
-
-    console.log(lineP2.x+','+lineP2.y+ '  '+lineP1.x+','+lineP1.y+'  '+point.x+','+point.y+'  '+ t+' <= '+radius);
-    return t <= radius;
+      );
+    return distance <= radius;
   },
 
   // http://wiki.openstreetmap.org/wiki/Zoom_levels

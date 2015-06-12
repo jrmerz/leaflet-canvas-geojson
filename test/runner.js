@@ -11,14 +11,12 @@ var markerLayer = new L.CanvasGeojsonLayer({
       if( !features[i].properties.render ) features[i].properties.render = {};
       features[i].properties.render.hover = true;
     }
-    this.render();
   },
   onMouseOut : function(features) {
     for( var i = 0; i < features.length; i++ ) {
       if( !features[i].properties.render ) features[i].properties.render = {};
       features[i].properties.render.hover = false;
     }
-    this.render();
   }
 });
 markerLayer.addTo(map);
@@ -59,7 +57,7 @@ $.get('http://localhost:3007/rest/getNetwork', function(resp){
 
           ctx.stroke();
           ctx.fill();
-
+/*
           var ne = map.latLngToContainerPoint(this.bounds.getNorthEast());
           var sw = map.latLngToContainerPoint(this.bounds.getSouthWest());
 
@@ -71,7 +69,7 @@ $.get('http://localhost:3007/rest/getNetwork', function(resp){
           ctx.lineTo(ne.x, ne.y);
 
           ctx.strokeStyle = 'white';
-          ctx.stroke();
+          ctx.stroke(); */
         }
       }
     }
@@ -81,6 +79,7 @@ $.get('http://localhost:3007/rest/getNetwork', function(resp){
 
   markerLayer.render();
 });
+
 
 $.get('http://localhost:3007/rest/getRegions', function(resp){
 
@@ -98,17 +97,17 @@ $.get('http://localhost:3007/rest/getRegions', function(resp){
         ctx.fillStyle = 'rgba(0, 0, 0, .3)';
         ctx.lineWidth = 4;
 
-        if( xyPoints.length > 500 ) {
+        /*if( xyPoints.length > 500 ) {
           for( j = 0; j < xyPoints.length; j += 50 ) {
             if( j == 0 ) ctx.moveTo(xyPoints[j].x, xyPoints[j].y);
             else ctx.lineTo(xyPoints[j].x, xyPoints[j].y);
           }
-        } else {
+        } else {*/
           for( j = 0; j < xyPoints.length; j++ ) {
             if( j == 0 ) ctx.moveTo(xyPoints[j].x, xyPoints[j].y);
             else ctx.lineTo(xyPoints[j].x, xyPoints[j].y);
           }
-        }
+        //}
 
 
         ctx.stroke();
@@ -116,7 +115,7 @@ $.get('http://localhost:3007/rest/getRegions', function(resp){
       }
     }
 
-    markerLayer.addFeature(feature);
+    markerLayer.addFeatureBottom(feature);
   }
 
   markerLayer.render();
