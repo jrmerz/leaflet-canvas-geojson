@@ -42,6 +42,9 @@ $.get('http://localhost:3007/rest/getNetwork', function(resp){
           ctx.lineWidth = 2;
           ctx.strokeStyle = 'green';
 
+          ctx.stroke();
+          ctx.fill();
+
         } else if ( this.geojson.geometry.type == 'LineString' ) {
 
           ctx.beginPath();
@@ -54,10 +57,22 @@ $.get('http://localhost:3007/rest/getNetwork', function(resp){
             else ctx.lineTo(xyPoints[j].x, xyPoints[j].y);
           }
 
-        }
+          ctx.stroke();
+          ctx.fill();
 
-        ctx.stroke();
-        ctx.fill();
+          var ne = map.latLngToContainerPoint(this.bounds.getNorthEast());
+          var sw = map.latLngToContainerPoint(this.bounds.getSouthWest());
+
+          ctx.beginPath();
+          ctx.moveTo(ne.x, ne.y);
+          ctx.lineTo(sw.x, ne.y);
+          ctx.lineTo(sw.x, sw.y);
+          ctx.lineTo(ne.x, sw.y);
+          ctx.lineTo(ne.x, ne.y);
+
+          ctx.strokeStyle = 'white';
+          ctx.stroke();
+        }
       }
     }
 

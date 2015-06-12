@@ -19,19 +19,21 @@ module.exports = {
   },
 
   calcBounds : function(coords) {
-    var xmin = xmax = coords[0][1];
-    var ymin = ymax = coords[0][0];
+    var xmin = coords[0][1];
+    var xmax = coords[0][1];
+    var ymin = coords[0][0];
+    var ymax = coords[0][0];
 
     for( var i = 1; i < coords.length; i++ ) {
       if( xmin > coords[i][1] ) xmin = coords[i][1];
       if( xmax < coords[i][1] ) xmax = coords[i][1];
 
       if( ymin > coords[i][0] ) ymin = coords[i][0];
-      if( xmax < coords[i][0] ) ymax = coords[i][0];
+      if( ymax < coords[i][0] ) ymax = coords[i][0];
     }
 
-    var southWest = L.latLng(xmin, ymin);
-    var northEast = L.latLng(xmax, ymax);
+    var southWest = L.latLng(xmin-.01, ymin-.01);
+    var northEast = L.latLng(xmax+.01, ymax+.01);
 
     return L.latLngBounds(southWest, northEast);
   },
@@ -59,13 +61,14 @@ module.exports = {
   lineIntersectsCircle : function(lineP1, lineP2, point, radius) {
     var t =
       (Math.abs(
-        (lineP2.y - lineP1.y)*point[0] - (lineP2.x - lineP1.x)*point[1] + lineP2.x*lineP1.y - lineP2.y*lineP1.x
+        ((lineP2.y - lineP1.y)*point.x) - ((lineP2.x - lineP1.x)*point.y) + (lineP2.x*lineP1.y) - (lineP2.y*lineP1.x)
       ) /
       Math.sqrt(
         Math.pow(lineP2.y - lineP1.y, 2) + Math.pow(lineP2.x - lineP1.x, 2)
       ));
 
-    console.log(t+' <= '+radius);
+
+    console.log(lineP2.x+','+lineP2.y+ '  '+lineP1.x+','+lineP1.y+'  '+point.x+','+point.y+'  '+ t+' <= '+radius);
     return t <= radius;
   },
 
