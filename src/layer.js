@@ -150,6 +150,7 @@ L.CanvasGeojsonLayer = L.Class.extend({
   clearCache : function() {
     // kill the feature point cache
     for( var i = 0; i < this.features.length; i++ ) {
+      if( !this.features[i].cache ) continue;
       this.features[i].cache.geoXY = null;
     }
   },
@@ -315,14 +316,17 @@ L.CanvasGeojsonLayer = L.Class.extend({
 
     if( !this.zooming ) this.redraw(diff);
 
-    if( this.debug ) diff = new Date().getTime() - t;
+    if( this.debug ) {
+      diff = new Date().getTime() - t;
 
-    var c = 0;
-    for( var i = 0; i < this.features.length; i++ ) {
-      if( Array.isArray(this.features[i].cache.geoXY) ) c += this.features[i].cache.geoXY.length;
+      var c = 0;
+      for( var i = 0; i < this.features.length; i++ ) {
+        if( !this.features[i].cache.geoXY ) continue;
+        if( Array.isArray(this.features[i].cache.geoXY) ) c += this.features[i].cache.geoXY.length;
+      }
+
+      console.log('Rendered '+c+' pts in '+diff+'ms');
     }
-
-    if( this.debug ) console.log('Rendered '+c+' pts in '+diff+'ms');
   },
 
   _intersects : function(e) {
