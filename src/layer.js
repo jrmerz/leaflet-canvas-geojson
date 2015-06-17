@@ -197,29 +197,7 @@ L.CanvasGeojsonLayer = L.Class.extend({
 
     // actually project to xy if needed
     if( reproject ) {
-
-      // make sure we have a cache namespace and set the zoom level
-      if( !feature.cache ) feature.cache = {};
-      feature.cache.zoom = zoom;
-
-      if( feature.geojson.geometry.type == 'Point' ) {
-
-        feature.cache.geoXY = this._map.latLngToContainerPoint([
-            feature.geojson.geometry.coordinates[1],
-            feature.geojson.geometry.coordinates[0]
-        ]);
-
-        // TODO: calculate bounding box if zoom has changed
-        if( feature.size ){
-
-        }
-
-      } else if( feature.geojson.geometry.type == 'LineString' ) {
-        feature.cache.geoXY = this.utils.projectLine(feature.geojson.geometry.coordinates, this._map);
-
-      } else if ( feature.geojson.geometry.type == 'Polygon' ) {
-        feature.cache.geoXY = this.utils.projectLine(feature.geojson.geometry.coordinates[0], this._map);
-      }
+      this._calcGeoXY(feature);
     }  // end reproject
 
     // if this was a simple pan event (a diff was provided) and we did not reproject
@@ -258,6 +236,31 @@ L.CanvasGeojsonLayer = L.Class.extend({
     feature.render.call(feature, this._ctx, feature.cache.geoXY, this._map);
   },
 
+  _calcGeoXY : function(feature, zoom) {
+    // make sure we have a cache namespace and set the zoom level
+    if( !feature.cache ) feature.cache = {};
+    feature.cache.zoom = zoom;
+
+    if( feature.geojson.geometry.type == 'Point' ) {
+
+      feature.cache.geoXY = this._map.latLngToContainerPoint([
+          feature.geojson.geometry.coordinates[1],
+          feature.geojson.geometry.coordinates[0]
+      ]);
+
+      // TODO: calculate bounding box if zoom has changed
+      if( feature.size ){
+
+      }
+
+    } else if( feature.geojson.geometry.type == 'LineString' ) {
+      feature.cache.geoXY = this.utils.projectLine(feature.geojson.geometry.coordinates, this._map);
+
+    } else if ( feature.geojson.geometry.type == 'Polygon' ) {
+      feature.cache.geoXY = this.utils.projectLine(feature.geojson.geometry.coordinates[0], this._map);
+    }
+  },
+
   addFeatures : function(features) {
     for( var i = 0; i < this.features.length; i++ ) {
       this.addFeature(this.features[i]);
@@ -291,6 +294,17 @@ L.CanvasGeojsonLayer = L.Class.extend({
 
   addFeatureBottom : function(feature) {
     this.addFeature(feature, true);
+  },
+
+  // returns true if re-render required.  ie the feature was visible;
+  removeFeature : function(feature) {
+    var index = this.features.indexOf(feature);
+    if( index == -1 ) return;
+
+    this.splice(index, 1);
+
+    if( this.feature.visible ) return true;
+    return false;
   },
 
   render: function(e) {
@@ -337,10 +351,52 @@ L.CanvasGeojsonLayer = L.Class.extend({
     }
   },
 
-  _intersects : function(e) {
-    var t = new Date().getTime();
+  /*
+    return list of all intersecting geometry regradless is currently visible
 
-    var mpp = this.utils.metersPerPx(e.latlng, this._map);
+    pxRadius - is for lines and points only.  Basically how far off the line or
+    or point a latlng can be and still be considered intersecting.  This is
+    given in px as it is compensating for user intent with mouse click or touch.
+    The point must lay inside to polygon for a match.
+  */
+  getAllIntersectingGeometry : function(latlng, pxRadius) {
+    var mpp = this.utils.metersPerPx(latlng, this._map);
+    var r = mpp * (pxRadius || 5); // 5 px radius buffer;
+
+    var center = {
+      type : 'Point',
+      coordinates : [latlng.lng, latlng.lat]
+    };
+    var zoom = this._map.getZoom();
+    var containerPoint = this._map.latLngToContainerPoint(latlng);
+
+    var f;
+    var intersects = [];
+
+    for( var i = 0; i < this.features.length; i++ ) {
+      f = this.features[i];
+
+      if( !f.geojson.geometry ) continue;
+      if( f.bounds && !f.bounds.contains(latlng) ) continue;
+
+      if( !f.cache ) this._calcGeoXY(f, zoom);
+      if( !f.cache.geoXY ) this._calcGeoXY(f, zoom);
+
+      if( this.utils.geometryWithinRadius(f.geojson.geometry, f.cache.geoXY, center, containerPoint, r) ) {
+        intersects.push(f);
+      }
+    }
+
+    return intersects;
+  },
+
+  // get the meters per px and a certain point;
+  getMetersPerPx : function(latlng) {
+    return this.utils.metersPerPx(latlng, this._map);
+  },
+
+  _intersects : function(e) {
+    var mpp = this.getMetersPerPx(e.latlng);
     var r = mpp * 5; // 5 px radius buffer;
 
     var center = {
@@ -351,28 +407,6 @@ L.CanvasGeojsonLayer = L.Class.extend({
     var f;
     var intersects = [];
 
-    /*
-    var checkCount = {
-      total : 0,
-      time : new Date().getTime(),
-      Point : {
-        total : 0,
-        timeTotal : 0,
-        avgTime : 0
-      },
-      LineString : {
-        total : 0,
-        timeTotal : 0,
-        avgTime : 0
-      },
-      Polygon : {
-        total : 0,
-        timeTotal : 0,
-        avgTime : 0
-      },
-    };
-    */
-
     for( var i = 0; i < this.features.length; i++ ) {
       f = this.features[i];
 
@@ -382,31 +416,11 @@ L.CanvasGeojsonLayer = L.Class.extend({
       if( !f.cache.geoXY ) continue;
       if( f.bounds && !f.bounds.contains(e.latlng) ) continue;
 
-      //checkCount.total++;
-      //checkCount[f.geojson.geometry.type].total++;
-      //var t = new Date().getTime();
-
       if( this.utils.geometryWithinRadius(f.geojson.geometry, f.cache.geoXY, center, e.containerPoint, f.size ? (f.size * mpp) : r) ) {
         intersects.push(f.geojson);
       }
 
-      //checkCount[f.geojson.geometry.type].timeTotal += (new Date().getTime() - t);
     }
-
-    /* for debug
-    if( checkCount.Point.total > 0 ) {
-      checkCount.Point.avgTime =  checkCount.Point.timeTotal / checkCount.Point.total;
-    }
-    if( checkCount.LineString.total > 0 ) {
-      checkCount.LineString.avgTime =  checkCount.LineString.timeTotal / checkCount.LineString.total;
-    }
-    if( checkCount.Polygon.total > 0 ) {
-      checkCount.Polygon.avgTime =  checkCount.Polygon.timeTotal / checkCount.Polygon.total;
-    }
-    checkCount.time = new Date().getTime() - checkCount.time;
-
-    console.log(checkCount);
-    */
 
     if( e.type == 'click' && this.onClick ) {
       this.onClick(intersects);
