@@ -164,17 +164,17 @@ L.CanvasGeojsonLayer = L.Class.extend({
   redraw: function(diff) {
     // objects should keep track of last bbox and zoom of map
     // if this hasn't changed the ll -> container pt is not needed
-
     var bounds = this._map.getBounds();
     var zoom = this._map.getZoom();
 
-    var t;
     if( this.debug ) t = new Date().getTime();
+
     for( var i = 0; i < this.features.length; i++ ) {
       this.redrawFeature(this.features[i], bounds, zoom, diff);
     }
 
-    if( this.debug ) console.log('Render time: '+(new Date().getTime() - t)+'ms');
+    if( this.debug ) console.log('Render time: '+(new Date().getTime() - t)+'ms; avg: '+
+      ((new Date().getTime() - t) / this.features.length)+'ms');
   },
 
   // redraw an individual feature
@@ -197,7 +197,7 @@ L.CanvasGeojsonLayer = L.Class.extend({
 
     // actually project to xy if needed
     if( reproject ) {
-      this._calcGeoXY(feature);
+      this._calcGeoXY(feature, zoom);
     }  // end reproject
 
     // if this was a simple pan event (a diff was provided) and we did not reproject
@@ -209,6 +209,7 @@ L.CanvasGeojsonLayer = L.Class.extend({
         feature.cache.geoXY.y += diff.y;
 
       } else if( feature.geojson.geometry.type == 'LineString' ) {
+
         this.utils.moveLine(feature.cache.geoXY, diff);
 
       } else if ( feature.geojson.geometry.type == 'Polygon' ) {
@@ -380,7 +381,7 @@ L.CanvasGeojsonLayer = L.Class.extend({
       if( f.bounds && !f.bounds.contains(latlng) ) continue;
 
       if( !f.cache ) this._calcGeoXY(f, zoom);
-      if( !f.cache.geoXY ) this._calcGeoXY(f, zoom);
+      else if( !f.cache.geoXY ) this._calcGeoXY(f, zoom);
 
       if( this.utils.geometryWithinRadius(f.geojson.geometry, f.cache.geoXY, center, containerPoint, r) ) {
         intersects.push(f);
@@ -396,6 +397,7 @@ L.CanvasGeojsonLayer = L.Class.extend({
   },
 
   _intersects : function(e) {
+    var t = new Date().getTime();
     var mpp = this.getMetersPerPx(e.latlng);
     var r = mpp * 5; // 5 px radius buffer;
 

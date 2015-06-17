@@ -1,6 +1,7 @@
 module.exports = {
   moveLine : function(coords, diff) {
-    for( var i = 0; i < coords.length; i++ ) {
+    var i; len = coords.length;
+    for( i = 0; i < len; i++ ) {
       coords[i].x += diff.x;
       coords[i].y += diff.y;
     }
