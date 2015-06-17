@@ -150,9 +150,13 @@ L.CanvasGeojsonLayer = L.Class.extend({
   clearCache : function() {
     // kill the feature point cache
     for( var i = 0; i < this.features.length; i++ ) {
-      if( !this.features[i].cache ) continue;
-      this.features[i].cache.geoXY = null;
+      this.clearFeatureCache( this.features[i] );
     }
+  },
+
+  clearFeatureCache : function(feature) {
+    if( !feature.cache ) return;
+    feature.cache.geoXY = null;
   },
 
   // redraw all features.  This does not handle clearing the canvas or setting
@@ -176,7 +180,11 @@ L.CanvasGeojsonLayer = L.Class.extend({
   // redraw an individual feature
   redrawFeature : function(feature, bounds, zoom, diff) {
     // ignore anything flagged as hidden
-    if( !feature.visible ) return;
+    // we do need to clear the cache in this case
+    if( !feature.visible ) {
+      this.clearFeatureCache(feature);
+      return;
+    }
 
     // now lets check cache to see if we need to reproject the
     // xy coordinates
