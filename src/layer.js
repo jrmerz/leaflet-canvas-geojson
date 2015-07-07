@@ -179,6 +179,8 @@ L.CanvasGeojsonLayer = L.Class.extend({
 
   // redraw an individual feature
   redrawFeature : function(feature, bounds, zoom, diff) {
+    //if( feature.geojson.properties.debug ) debugger;
+
     // ignore anything flagged as hidden
     // we do need to clear the cache in this case
     if( !feature.visible ) {
@@ -233,8 +235,8 @@ L.CanvasGeojsonLayer = L.Class.extend({
     // if the feature was out of bounds last time we want to reproject
     //feature.outOfBounds = false;
 
-    // call feature render function in feature scope;
-    feature.render.call(feature, this._ctx, feature.cache.geoXY, this._map);
+    // call feature render function in feature scope; feature is passed as well
+    feature.render.call(feature, this._ctx, feature.cache.geoXY, this._map, feature);
   },
 
   _calcGeoXY : function(feature, zoom) {
@@ -249,9 +251,9 @@ L.CanvasGeojsonLayer = L.Class.extend({
           feature.geojson.geometry.coordinates[0]
       ]);
 
-      // TODO: calculate bounding box if zoom has changed
-      if( feature.size ){
-
+      if( feature.size ) {
+        feature.cache.geoXY[0] = feature.cache.geoXY[0] - feature.size / 2;
+        feature.cache.geoXY[1] = feature.cache.geoXY[1] - feature.size / 2;
       }
 
     } else if( feature.geojson.geometry.type == 'LineString' ) {
@@ -289,8 +291,12 @@ L.CanvasGeojsonLayer = L.Class.extend({
       return;
     }
 
-    if( bottom ) this.features.unshift(feature);
-    else this.features.push(feature);
+    if( bottom ) { // bottom or index
+      if( typeof bottom === 'number') this.features.splice(bottom, 0, feature);
+      else this.features.unshift(feature);
+    } else {
+      this.features.push(feature);
+    }
   },
 
   addFeatureBottom : function(feature) {
