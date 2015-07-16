@@ -314,6 +314,15 @@ L.CanvasGeojsonLayer = L.Class.extend({
     return false;
   },
 
+  // get layer feature via geojson object
+  getFeatureForGeojson : function(geojson) {
+    for( var i = 0; i < this.features.length; i++ ) {
+      if( this.features[i].geojson == geojson ) return this.features[i];
+    }
+
+    return null;
+  },
+
   render: function(e) {
     var t, diff
     if( this.debug ) t = new Date().getTime();
@@ -456,9 +465,9 @@ L.CanvasGeojsonLayer = L.Class.extend({
 
     this.intersectList = intersects;
 
-    if( this.onMouseOver && mouseover.length > 0 ) this.onMouseOver.call(this, mouseover);
-    if( this.onMouseMove && mousemove.length > 0 ) this.onMouseMove.call(this, mousemove);
-    if( this.onMouseOut && mouseout.length > 0 ) this.onMouseOut.call(this, mouseout);
+    if( this.onMouseOver && mouseover.length > 0 ) this.onMouseOver.call(this, mouseover, e);
+    if( this.onMouseMove && mousemove.length > 0 ) this.onMouseMove.call(this, mousemove, e);
+    if( this.onMouseOut && mouseout.length > 0 ) this.onMouseOut.call(this, mouseout, e);
 
     if( this.debug ) console.log('intersects time: '+(new Date().getTime() - t)+'ms');
 
