@@ -510,7 +510,7 @@ L.CanvasGeojsonLayer = L.Class.extend({
     this.intersectList = intersects;
 
     if( this.onMouseOver && mouseover.length > 0 ) this.onMouseOver.call(this, mouseover, e);
-    if( this.onMouseMove && mousemove.length > 0 ) this.onMouseMove.call(this, mousemove, e);
+    if( this.onMouseMove ) this.onMouseMove.call(this, mousemove, e); // always fire
     if( this.onMouseOut && mouseout.length > 0 ) this.onMouseOut.call(this, mouseout, e);
 
     if( this.debug ) console.log('intersects time: '+(new Date().getTime() - t)+'ms');
