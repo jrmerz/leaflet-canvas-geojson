@@ -216,24 +216,35 @@ L.CanvasGeojsonLayer = L.Class.extend({
 
       } else if ( feature.geojson.geometry.type == 'Polygon' ) {
         this.utils.moveLine(feature.cache.geoXY, diff);
+      } else if ( feature.geojson.geometry.type == 'MultiPolygon' ) {
+        for( var i = 0; i < feature.cache.geoXY.length; i++ ) {
+          this.utils.moveLine(feature.cache.geoXY[i], diff);
+        }
       }
     }
 
     // ignore anything not in bounds
     if( feature.geojson.geometry.type == 'Point' ) {
       if( !bounds.contains(feature.latlng) ) {
-        //feature.outOfBounds = true;
         return;
       }
+    } else if( feature.geojson.geometry.type == 'MultiPolygon' ) {
+
+      // just make sure at least one polygon is within range
+      var found = false;
+      for( var i = 0; i < feature.bounds.length; i++ ) {
+        if( bounds.contains(feature.bounds[i]) || bounds.intersects(feature.bounds[i]) ) {
+          found = true;
+          break;
+        }
+      }
+      if( !found ) return;
+
     } else {
       if( !bounds.contains(feature.bounds) && !bounds.intersects(feature.bounds) ) {
-        //feature.outOfBounds = true;
         return;
       }
     }
-
-    // if the feature was out of bounds last time we want to reproject
-    //feature.outOfBounds = false;
 
     // call feature render function in feature scope; feature is passed as well
     feature.render.call(feature, this._ctx, feature.cache.geoXY, this._map, feature);
@@ -261,7 +272,13 @@ L.CanvasGeojsonLayer = L.Class.extend({
 
     } else if ( feature.geojson.geometry.type == 'Polygon' ) {
       feature.cache.geoXY = this.utils.projectLine(feature.geojson.geometry.coordinates[0], this._map);
+    } else if ( feature.geojson.geometry.type == 'MultiPolygon' ) {
+      feature.cache.geoXY = [];
+      for( var i = 0; i < feature.geojson.geometry.coordinates.length; i++ ) {
+        feature.cache.geoXY.push(this.utils.projectLine(feature.geojson.geometry.coordinates[i][0], this._map));
+      }
     }
+
   },
 
   addFeatures : function(features) {
@@ -281,10 +298,16 @@ L.CanvasGeojsonLayer = L.Class.extend({
       feature.bounds = this.utils.calcBounds(feature.geojson.geometry.coordinates);
 
     } else if ( feature.geojson.geometry.type == 'Polygon' ) {
+      // TODO: we only support outer rings out the moment, no inner rings.  Thus coordinates[0]
       feature.bounds = this.utils.calcBounds(feature.geojson.geometry.coordinates[0]);
 
     } else if ( feature.geojson.geometry.type == 'Point' ) {
       feature.latlng = L.latLng(feature.geojson.geometry.coordinates[1], feature.geojson.geometry.coordinates[0]);
+    } else if ( feature.geojson.geometry.type == 'MultiPolygon' ) {
+      feature.bounds = [];
+      for( var i = 0; i < feature.geojson.geometry.coordinates.length; i++  ) {
+        feature.bounds.push(this.utils.calcBounds(feature.geojson.geometry.coordinates[i][0]));
+      }
     } else {
       console.log('GeoJSON feature type "'+feature.geojson.geometry.type+'" not supported.');
       console.log(feature.geojson);
@@ -393,8 +416,11 @@ L.CanvasGeojsonLayer = L.Class.extend({
       f = this.features[i];
 
       if( !f.geojson.geometry ) continue;
-      if( f.bounds && !f.bounds.contains(latlng) ) continue;
 
+      // check the bounding box for intersection first
+      if( !this._isInBounds(feature, latlng) ) continue;
+
+      // see if we need to recalc the x,y screen coordinate cache
       if( !f.cache ) this._calcGeoXY(f, zoom);
       else if( !f.cache.geoXY ) this._calcGeoXY(f, zoom);
 
@@ -404,6 +430,24 @@ L.CanvasGeojsonLayer = L.Class.extend({
     }
 
     return intersects;
+  },
+
+  // returns true if in bounds or unknown
+  _isInBounds : function(feature, latlng) {
+    if( feature.bounds ) {
+      if( Array.isArray(feature.bounds) ) {
+
+        for( var i = 0; i < feature.bounds.length; i++ ) {
+          if( feature.bounds[i].contains(latlng) ) return true;
+        }
+
+      } else if ( feature.bounds.contains(latlng) ) {
+        return true;
+      }
+
+      return false;
+    }
+    return true;
   },
 
   // get the meters per px and a certain point;
@@ -431,7 +475,7 @@ L.CanvasGeojsonLayer = L.Class.extend({
       if( !f.geojson.geometry ) continue;
       if( !f.cache ) continue;
       if( !f.cache.geoXY ) continue;
-      if( f.bounds && !f.bounds.contains(e.latlng) ) continue;
+      if( !this._isInBounds(f, e.latlng) ) continue;
 
       if( this.utils.geometryWithinRadius(f.geojson.geometry, f.cache.geoXY, center, e.containerPoint, f.size ? (f.size * mpp) : r) ) {
         intersects.push(f.geojson);

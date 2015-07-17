@@ -51,7 +51,7 @@ module.exports = {
       }
 
       return false;
-    } else if (geometry.type == 'Polygon') {
+    } else if (geometry.type == 'Polygon' || geometry.type == 'MultiPolygon') {
       return this.pointInPolygon(center, geometry);
     }
   },
