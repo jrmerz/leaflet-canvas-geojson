@@ -68,7 +68,8 @@ L.CanvasGeojsonLayer = L.Class.extend({
     // add container with the canvas to the tile pane
     // the container is moved in the oposite direction of the
     // map pane to keep the canvas always in (0, 0)
-    var tilePane = this._map._panes.tilePane;
+    //var tilePane = this._map._panes.tilePane;
+    var tilePane = this._map._panes.markerPane;
     var _container = L.DomUtil.create('div', 'leaflet-layer');
 
     _container.appendChild(this._canvas);
@@ -96,6 +97,17 @@ L.CanvasGeojsonLayer = L.Class.extend({
     }, this);
 
     this._reset();
+
+    if( this.zIndex !== undefined ) {
+      this.setZIndex(this.zIndex);
+    }
+  },
+
+  setZIndex : function(index) {
+    this.zIndex = index;
+    if( this._container ) {
+      this._container.style.zIndex = index;
+    }
   },
 
   _startZoom: function() {
