@@ -10,7 +10,7 @@
 
   geoXY and leaflet will be assigned
 **/
-
+var count = 0;
 L.CanvasGeojsonLayer = L.Class.extend({
   // show layer timing
   debug : false,
@@ -33,6 +33,10 @@ L.CanvasGeojsonLayer = L.Class.extend({
 
   // initialize layer
   initialize: function (options) {
+    this.features = [];
+    this.intersectList = [];
+    this.showing = true;
+
     // set options
     options = options || {};
     L.Util.setOptions(this, options);
@@ -48,6 +52,23 @@ L.CanvasGeojsonLayer = L.Class.extend({
     // set canvas and canvas context shortcuts
     this._canvas = this._createCanvas();
     this._ctx = this._canvas.getContext('2d');
+  },
+
+  removeAll : function() {
+    this.features = [];
+    this.intersectList = [];
+    this._reset();
+  },
+
+  hide : function() {
+    this._canvas.style.display = 'none';
+    this.showing = false;
+  },
+
+  show : function() {
+    this._canvas.style.display = 'block';
+    this.showing = true;
+    this.redraw();
   },
 
   _createCanvas: function() {
@@ -70,7 +91,8 @@ L.CanvasGeojsonLayer = L.Class.extend({
     // map pane to keep the canvas always in (0, 0)
     //var tilePane = this._map._panes.tilePane;
     var tilePane = this._map._panes.markerPane;
-    var _container = L.DomUtil.create('div', 'leaflet-layer');
+    var _container = L.DomUtil.create('div', 'leaflet-layer-'+count);
+    count++;
 
     _container.appendChild(this._canvas);
     tilePane.appendChild(_container);
@@ -174,6 +196,8 @@ L.CanvasGeojsonLayer = L.Class.extend({
   // redraw all features.  This does not handle clearing the canvas or setting
   // the canvas correct position.  That is handled by render
   redraw: function(diff) {
+    if( !this.showing ) return;
+
     // objects should keep track of last bbox and zoom of map
     // if this hasn't changed the ll -> container pt is not needed
     var bounds = this._map.getBounds();
@@ -382,7 +406,7 @@ L.CanvasGeojsonLayer = L.Class.extend({
     L.DomUtil.setPosition(this._canvas, topLeft);
 
     var canvas = this.getCanvas();
-    var ctx = canvas.getContext('2d');
+    var ctx = this._ctx;
 
     // clear canvas
     ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -468,6 +492,8 @@ L.CanvasGeojsonLayer = L.Class.extend({
   },
 
   _intersects : function(e) {
+    if( !this.showing ) return;
+
     var t = new Date().getTime();
     var mpp = this.getMetersPerPx(e.latlng);
     var r = mpp * 5; // 5 px radius buffer;
