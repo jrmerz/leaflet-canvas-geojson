@@ -305,16 +305,43 @@ L.CanvasGeojsonLayer = L.Class.extend({
 
     } else if( feature.geojson.geometry.type == 'LineString' ) {
       feature.cache.geoXY = this.utils.projectLine(feature.geojson.geometry.coordinates, this._map);
-
+      this._trimGeoXY(feature.cache.geoXY);
     } else if ( feature.geojson.geometry.type == 'Polygon' ) {
       feature.cache.geoXY = this.utils.projectLine(feature.geojson.geometry.coordinates[0], this._map);
+      this._trimGeoXY(feature.cache.geoXY);
     } else if ( feature.geojson.geometry.type == 'MultiPolygon' ) {
       feature.cache.geoXY = [];
       for( var i = 0; i < feature.geojson.geometry.coordinates.length; i++ ) {
-        feature.cache.geoXY.push(this.utils.projectLine(feature.geojson.geometry.coordinates[i][0], this._map));
+        var xy = this.utils.projectLine(feature.geojson.geometry.coordinates[i][0], this._map);
+        this._trimGeoXY(xy);
+        feature.cache.geoXY.push(xy);
       }
     }
 
+  },
+
+  // given an array of geo xy coordinates, make sure each point is at least more than 1px apart
+  _trimGeoXY : function(xy) {
+    if( xy.length === 0 ) return;
+    var last = xy[xy.length-1], i, point;
+
+    var c = 0;
+    for( i = xy.length-2; i >= 0; i-- ) {
+      point = xy[i];
+      if( Math.abs(last.x - point.x) <= 1 && Math.abs(last.y - point.y) <= 1 ) {
+        xy.splice(i, 1);
+        c++;
+      } else {
+        last = point;
+      }
+    }
+
+    if( xy.length <= 1 ) {
+      xy.push(last);
+      c--;
+    }
+
+    console.log('trimed: '+c);
   },
 
   addFeatures : function(features) {
