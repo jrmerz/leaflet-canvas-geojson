@@ -103,17 +103,19 @@ L.CanvasGeojsonLayer = L.Class.extend({
     // set container in position (0, 0) in screen coordinates
     if (map.dragging.enabled()) {
       map.dragging._draggable.on('predrag', function() {
-        var d = map.dragging._draggable;
-        L.DomUtil.setPosition(this._canvas, { x: -d._newPos.x, y: -d._newPos.y });
+        this.moveStart();
+        //var d = map.dragging._draggable;
+        //L.DomUtil.setPosition(this._canvas, { x: -d._newPos.x, y: -d._newPos.y });
       }, this);
     }
 
     map.on({
       'viewreset' : this._reset,
       'resize'    : this._reset,
-      'move'      : this.render,
       'zoomstart' : this._startZoom,
       'zoomend'   : this._endZoom,
+      'movestart' : this.moveStart,
+      'moveend'   : this.moveEnd,
       'mousemove' : this._intersects,
       'click'     : this._intersects
     }, this);
@@ -156,7 +158,8 @@ L.CanvasGeojsonLayer = L.Class.extend({
     map.off({
       'viewreset' : this._reset,
       'resize'    : this._reset,
-      'move'      : this.render,
+      'movestart' : this.moveStart,
+      'moveend'   : this.moveEnd,
       'zoomstart' : this._startZoom,
       'zoomend'   : this._endZoom,
       'mousemove' : this._intersects,
@@ -328,7 +331,7 @@ L.CanvasGeojsonLayer = L.Class.extend({
     var c = 0;
     for( i = xy.length-2; i >= 0; i-- ) {
       point = xy[i];
-      if( Math.abs(last.x - point.x) <= 1 && Math.abs(last.y - point.y) <= 1 ) {
+      if( Math.abs(last.x - point.x) === 0 && Math.abs(last.y - point.y) === 0 ) {
         xy.splice(i, 1);
         c++;
       } else {
@@ -340,8 +343,6 @@ L.CanvasGeojsonLayer = L.Class.extend({
       xy.push(last);
       c--;
     }
-
-    console.log('trimed: '+c);
   },
 
   addFeatures : function(features) {
@@ -409,12 +410,31 @@ L.CanvasGeojsonLayer = L.Class.extend({
     return null;
   },
 
+  moveStart : function() {
+    this.moving = true;
+  },
+
+  moveEnd : function(e) {
+    this.moving = false;
+    this.render(e);
+  },
+
   render: function(e) {
+    if( this.moving ) {
+      return;
+    }
+    if( e ) {
+      console.log(e.type);
+    } else {
+      console.log('layer');
+    }
+
+
     var t, diff
     if( this.debug ) t = new Date().getTime();
 
     var diff = null;
-    if( e && e.type == 'move' ) {
+    if( e && e.type == 'moveend' ) {
       var center = this._map.getCenter();
 
       var pt = this._map.latLngToContainerPoint(center);
