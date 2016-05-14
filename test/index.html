@@ -26,7 +26,33 @@
   <body>
 
     <div id="map"></div>
-    <script src="runner.js"></script>
+    <script src="sample-geojson.js"></script>
+    <script>
+      var map = L.map('map').setView([39.74739, -105], 13);
 
+      // add an OpenStreetMap tile layer
+      L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png', {
+          attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
+      }).addTo(map);
+
+      var markerLayer = new L.CanvasGeojsonLayer({
+        onMouseOver : function(features) {
+          for( var i = 0; i < features.length; i++ ) {
+            if( !features[i].properties.render ) features[i].properties.render = {};
+            features[i].properties.render.hover = true;
+          }
+        },
+        onMouseOut : function(features) {
+          for( var i = 0; i < features.length; i++ ) {
+            if( !features[i].properties.render ) features[i].properties.render = {};
+            features[i].properties.render.hover = false;
+          }
+        }
+      });
+      markerLayer.addTo(map);
+      
+      markerLayer.addCanvasFeatures(L.CanvasFeatureFactory(geojsonData));
+      markerLayer.render();
+     </script>
   </body>
 </html>
