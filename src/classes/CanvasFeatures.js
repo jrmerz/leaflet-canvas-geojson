@@ -6,11 +6,6 @@ function CanvasFeatures(geojson) {
     
     this.canvasFeatures = [];
     
-    // radius for point features
-    // use to calculate mouse over/out and click events for points
-    // this value should match the value used for rendering points
-    this.size = 5;
-    
     // actual geojson object, will not be modifed, just stored
     this.geojson = geojson;
     

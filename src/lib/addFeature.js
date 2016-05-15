@@ -34,7 +34,7 @@ module.exports = function(layer) {
   };
 
   // returns true if re-render required.  ie the feature was visible;
-  layer.removeFeature = function(feature) {
+  layer.removeCanvasFeature = function(feature) {
     var index = this.features.indexOf(feature);
     if( index == -1 ) return;
 
@@ -43,6 +43,10 @@ module.exports = function(layer) {
     if( this.feature.visible ) return true;
     return false;
   };
+  
+  this.removeAll = function() {
+      this.features = [];
+  }
 }
 
 function prepareCanvasFeature(layer, canvasFeature) {

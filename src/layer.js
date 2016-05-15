@@ -87,5 +87,5 @@ require('./lib/toCanvasXY')(layer);
 
 L.CanvasFeatureFactory = require('./classes/factory');
 L.CanvasFeature = CanvasFeature;
-L.CanvasFeatures = CanvasFeatures;
+L.CanvasFeatureCollection = CanvasFeatures;
 L.CanvasGeojsonLayer = L.Class.extend(layer);
