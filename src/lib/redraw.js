@@ -1,9 +1,9 @@
 module.exports = function(layer) {
     
   layer.render = function(e) {
-    /*if( this.moving ) {
+    if( !this.allowPanRendering && this.moving ) {
       return;
-    }*/
+    }
 
     var t, diff
     if( this.debug ) {

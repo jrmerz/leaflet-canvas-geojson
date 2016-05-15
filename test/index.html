@@ -36,17 +36,8 @@
       }).addTo(map);
 
       var markerLayer = new L.CanvasGeojsonLayer({
-        onMouseOver : function(features) {
-          for( var i = 0; i < features.length; i++ ) {
-            if( !features[i].properties.render ) features[i].properties.render = {};
-            features[i].properties.render.hover = true;
-          }
-        },
-        onMouseOut : function(features) {
-          for( var i = 0; i < features.length; i++ ) {
-            if( !features[i].properties.render ) features[i].properties.render = {};
-            features[i].properties.render.hover = false;
-          }
+        onClick : function(features) {
+          debugger;
         }
       });
       markerLayer.addTo(map);

@@ -23,6 +23,7 @@ function CanvasLayer() {
   
   this.moving = false;
   this.zooming = false;
+  this.allowPanRendering = true;
   
   // recommended you override this.  you can also set a custom renderer
   // for each CanvasFeature if you wish

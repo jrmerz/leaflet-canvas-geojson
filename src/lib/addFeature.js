@@ -44,7 +44,8 @@ module.exports = function(layer) {
     return false;
   };
   
-  this.removeAll = function() {
+  layer.removeAll = function() {
+      this.allowPanRendering = true;
       this.features = [];
   }
 }

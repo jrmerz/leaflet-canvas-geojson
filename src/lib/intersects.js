@@ -22,11 +22,10 @@ function intersects(e) {
 
       if( !f.visible ) continue;
       if( !f.geojson.geometry ) continue;
-      if( !f.cache ) continue;
-      if( !f.cache.geoXY ) continue;
-      if( !this._isInBounds(f, e.latlng) ) continue;
+      if( !f.getCanvasXY() ) continue;
+      if( !isInBounds(f, e.latlng) ) continue;
 
-      if( this.utils.geometryWithinRadius(f.geojson.geometry, f.cache.geoXY, center, e.containerPoint, f.size ? (f.size * mpp) : r) ) {
+      if( this.utils.geometryWithinRadius(f.geojson.geometry, f.getCanvasXY(), center, e.containerPoint, f.size ? (f.size * mpp) : r) ) {
         intersects.push(f.geojson);
       }
     }

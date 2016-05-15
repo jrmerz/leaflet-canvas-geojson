@@ -108,6 +108,8 @@ function endZoom() {
 }
 
 function moveStart() {
+    if( !this.allowPanRendering ) return;
+    if( this.moving ) return;
     this.moving = true;
     
     window.requestAnimationFrame(frameRender.bind(this));
@@ -120,9 +122,19 @@ function moveEnd(e) {
 
 function frameRender() {
     if( !this.moving ) return;
-    
+
+    var t = new Date().getTime();
     this.render();
+    
+    console.log(new Date().getTime() - t);
+    if( new Date().getTime() - t > 75 ) {
+        console.log('Disabled rendering while paning');
+        this.allowPanRendering = false;
+        return;
+    }
+    
     setTimeout(function(){
+        if( !this.moving ) return;
         window.requestAnimationFrame(frameRender.bind(this));
-    }, 500);
+    }.bind(this), 750);
 }
