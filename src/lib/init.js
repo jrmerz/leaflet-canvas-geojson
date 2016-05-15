@@ -108,9 +108,10 @@ function endZoom() {
 }
 
 function moveStart() {
-    if( !this.allowPanRendering ) return;
     if( this.moving ) return;
     this.moving = true;
+    
+    if( !this.allowPanRendering ) return;
     
     window.requestAnimationFrame(frameRender.bind(this));
 }
@@ -126,9 +127,11 @@ function frameRender() {
     var t = new Date().getTime();
     this.render();
     
-    console.log(new Date().getTime() - t);
     if( new Date().getTime() - t > 75 ) {
-        console.log('Disabled rendering while paning');
+        if( this.debug ) {
+            console.log('Disabled rendering while paning');
+        }
+        
         this.allowPanRendering = false;
         return;
     }

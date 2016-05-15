@@ -1,0 +1,23 @@
+{
+  "name": "leaflet-canvas-geojson",
+  "description": "leaflet layer for rendering vectors on single canvas layer",
+  "main": "dist/leaflet-canvas-geojson.js",
+  "authors": [
+    "Justin Merz <jrmerz@gmail.com>"
+  ],
+  "license": "GPL-3.0",
+  "keywords": [
+    "leaflet",
+    "canvas",
+    "geojson"
+  ],
+  "homepage": "https://github.com/ucd-cws/leaflet-canvas-geojson",
+  "moduleType": [],
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ]
+}
