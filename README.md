@@ -40,12 +40,12 @@ canvasLayer.render();
 There are two ways two the geojson:
 
 1) Assign a renderer to the layer
-```
+```javascript
 canvasLayer.renderer = function() {}
 ```
 
 2) Assign a renderer to the L.CanvasFeature
-```
+```javascript
 canvasFeature.renderer = function() {}
 ```
 
@@ -53,7 +53,7 @@ If a CanvasFeature render is provided, it will be used instead of the layer
 render.
 
 The renderer function should look like:
-```
+```javascript
 /**
  * ctx - The canvas elements 2d context
  * xyPoints - either object or array
