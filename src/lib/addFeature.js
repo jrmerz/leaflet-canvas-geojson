@@ -8,25 +8,21 @@ module.exports = function(layer) {
     }
   };
 
-  layer.addCanvasFeature = function(feature, bottom) {
+  layer.addCanvasFeature = function(feature, bottom, callback) {
     if( !(feature instanceof CanvasFeature) && !(feature instanceof CanvasFeatures) ) {
       throw new Error('Feature must be instance of CanvasFeature or CanvasFeatures');
     }
     
-    if( feature instanceof CanvasFeatures ) {
-        feature.canvasFeatures.forEach(function(f){
-            prepareCanvasFeature(this, f);
-        }.bind(this));
-    } else {
-        prepareCanvasFeature(this, feature);
-    }
+    prepareCanvasFeature(this, feature, () => {
+      if( bottom ) { // bottom or index
+        if( typeof bottom === 'number') this.features.splice(bottom, 0, feature);
+        else this.features.unshift(feature);
+      } else {
+        this.features.push(feature);
+      }
 
-    if( bottom ) { // bottom or index
-      if( typeof bottom === 'number') this.features.splice(bottom, 0, feature);
-      else this.features.unshift(feature);
-    } else {
-      this.features.push(feature);
-    }
+      if( callback ) callback();
+    });
   },
 
   layer.addCanvasFeatureBottom = function(feature) {
@@ -50,29 +46,34 @@ module.exports = function(layer) {
   }
 }
 
-function prepareCanvasFeature(layer, canvasFeature) {
-    var geometry = canvasFeature.geojson.geometry;
+function prepareCanvasFeature(layer, canvasFeature, callback) {
     
-    if( geometry.type == 'LineString' ) {
+    canvasFeature.getGeoJson((geojson) => {
+      var geometry = geojson.geometry;
+
+      if( geometry.type == 'LineString' ) {
         
-      canvasFeature.bounds = layer.utils.calcBounds(geometry.coordinates);
+        canvasFeature.bounds = layer.utils.calcBounds(geometry.coordinates);
 
-    } else if ( geometry.type == 'Polygon' ) {
-      // TODO: we only support outer rings out the moment, no inner rings.  Thus coordinates[0]
-      canvasFeature.bounds = layer.utils.calcBounds(geometry.coordinates[0]);
+      } else if ( geometry.type == 'Polygon' ) {
+        // TODO: we only support outer rings out the moment, no inner rings.  Thus coordinates[0]
+        canvasFeature.bounds = layer.utils.calcBounds(geometry.coordinates[0]);
 
-    } else if ( geometry.type == 'Point' ) {
- 
-      canvasFeature.latlng = L.latLng(geometry.coordinates[1], geometry.coordinates[0]);
-    
-    } else if ( geometry.type == 'MultiPolygon' ) {
+      } else if ( geometry.type == 'Point' ) {
+  
+        canvasFeature.latlng = L.latLng(geometry.coordinates[1], geometry.coordinates[0]);
       
-      canvasFeature.bounds = [];
-      for( var i = 0; i < geometry.coordinates.length; i++  ) {
-        canvasFeature.bounds.push(layer.utils.calcBounds(geometry.coordinates[i][0]));
+      } else if ( geometry.type == 'MultiPolygon' ) {
+        
+        canvasFeature.bounds = [];
+        for( var i = 0; i < geometry.coordinates.length; i++  ) {
+          canvasFeature.bounds.push(layer.utils.calcBounds(geometry.coordinates[i][0]));
+        }
+        
+      } else {
+        throw new Error('GeoJSON feature type "'+geometry.type+'" not supported.');
       }
-      
-    } else {
-      throw new Error('GeoJSON feature type "'+geometry.type+'" not supported.');
-    }
+
+      callback();
+    });
 }

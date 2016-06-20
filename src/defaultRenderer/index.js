@@ -3,16 +3,16 @@ var ctx;
 /**
  * Fuction called in scope of CanvasFeature
  */
-function render(context, xyPoints, map, geojson) {
+function render(context, xyPoints, map, canvasFeature) {
     ctx = context;
     
-    if( geojson.geometry.type === 'Point' ) {
+    if( canvasFeature.type === 'Point' ) {
         renderPoint(xyPoints, this.size);
-    } else if( geojson.geometry.type === 'LineString' ) {
+    } else if( canvasFeature.type === 'LineString' ) {
         renderLine(xyPoints);
-    } else if( geojson.geometry.type === 'Polygon' ) {
+    } else if( canvasFeature.type === 'Polygon' ) {
         renderPolygon(xyPoints);
-    } else if( geojson.geometry.type === 'MultiPolygon' ) {
+    } else if( canvasFeature.type === 'MultiPolygon' ) {
         xyPoints.forEach(renderPolygon);
     }
 }

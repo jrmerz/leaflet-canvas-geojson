@@ -43,20 +43,18 @@ module.exports = function(layer) {
 
         // hack: listen to predrag event launched by dragging to
         // set container in position (0, 0) in screen coordinates
-        if (map.dragging.enabled()) {
+        /*if (map.dragging.enabled()) {
             map.dragging._draggable.on('predrag', function() {
                 moveStart.apply(this);
-                //var d = map.dragging._draggable;
-                //L.DomUtil.setPosition(this._canvas, { x: -d._newPos.x, y: -d._newPos.y });
             }, this);
-        }
+        }*/
 
         map.on({
             'viewreset' : this.reset,
             'resize'    : this.reset,
             'zoomstart' : startZoom,
             'zoomend'   : endZoom,
-            'movestart' : moveStart,
+        //    'movestart' : moveStart,
             'moveend'   : moveEnd,
             'mousemove' : intersects,
             'click'     : intersects
@@ -74,7 +72,7 @@ module.exports = function(layer) {
         map.off({
             'viewreset' : this.reset,
             'resize'    : this.reset,
-            'movestart' : moveStart,
+         //   'movestart' : moveStart,
             'moveend'   : moveEnd,
             'zoomstart' : startZoom,
             'zoomend'   : endZoom,
@@ -111,9 +109,9 @@ function moveStart() {
     if( this.moving ) return;
     this.moving = true;
     
-    if( !this.allowPanRendering ) return;
-    
-    window.requestAnimationFrame(frameRender.bind(this));
+    //if( !this.allowPanRendering ) return;
+    return;
+    // window.requestAnimationFrame(frameRender.bind(this));
 }
 
 function moveEnd(e) {

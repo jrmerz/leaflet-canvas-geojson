@@ -24,7 +24,7 @@ function CanvasLayer() {
   this.moving = false;
   this.zooming = false;
   // TODO: make this work
-  this.allowPanRendering = true;
+  this.allowPanRendering = false;
   
   // recommended you override this.  you can also set a custom renderer
   // for each CanvasFeature if you wish
@@ -54,6 +54,22 @@ function CanvasLayer() {
     this.render();
   };
 
+  // clear canvas
+  this.clearCanvas = function() {
+    var canvas = this.getCanvas();
+    var ctx = this._ctx;
+
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    this.reposition();
+  }
+
+  this.reposition = function() {
+    var topLeft = this._map.containerPointToLayerPoint([0, 0]);
+    this._canvas.style.top = topLeft.y+'px';
+    this._canvas.style.left = topLeft.x+'px';
+    //L.DomUtil.setPosition(this._canvas, topLeft);
+  }
+
   // clear each features cache
   this.clearCache = function() {
     // kill the feature point cache
@@ -63,9 +79,9 @@ function CanvasLayer() {
   };
 
   // get layer feature via geojson object
-  this.getCanvasFeatureForGeojson = function(geojson) {
+  this.getCanvasFeatureById = function(id) {
     for( var i = 0; i < this.features.length; i++ ) {
-      if( this.features[i].geojson == geojson ) {
+      if( this.features[i].id == id ) {
         return this.features[i];
       }
     }
