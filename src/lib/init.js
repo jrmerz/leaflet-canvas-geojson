@@ -5,6 +5,7 @@ module.exports = function(layer) {
     
     layer.initialize = function(options) {
         this.features = [];
+        this.featureIndex = {};
         this.intersectList = [];
         this.showing = true;
 
@@ -61,6 +62,7 @@ module.exports = function(layer) {
         }, this);
 
         this.reset();
+        this.clearCanvas();
 
         if( this.zIndex !== undefined ) {
             this.setZIndex(this.zIndex);
@@ -102,6 +104,7 @@ function startZoom() {
 function endZoom() {
     this._canvas.style.visibility = 'visible';
     this.zooming = false;
+    this.clearCache();
     setTimeout(this.render.bind(this), 50);
 }
 

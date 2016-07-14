@@ -1,20 +1,9 @@
-var async = require('async');
-
-var running = false;
-var reschedule = null;
-
 /** 
  * Handle mouse intersection events
  * e - leaflet event
  **/
 function intersects(e) {
     if( !this.showing ) return;
-
-    if( running ) {
-      reschedule = e;
-      return;
-    }
-    running = true;
 
     var t = new Date().getTime();
     var mpp = this.getMetersPerPx(e.latlng);
@@ -28,34 +17,26 @@ function intersects(e) {
     var f;
     var intersects = [];
 
-    async.eachSeries(
-      this.features,
-      (f, next) => {
+    for( var i = 0; i < this.features.length; i++ ) {
         f = this.features[i];
 
-        if( !f.visible ) {
-          return next();
+        if (!f.visible) {
+          continue;
         }
-        if( !f.getCanvasXY() ) {
-          return next();
+        if (!f.getCanvasXY()) {
+          continue;
         }
-        if( !isInBounds(f, e.latlng) ) {
-          return next();
+        if (!isInBounds(f, e.latlng)) {
+          continue;
         }
 
-        f.getGeoJson((geojson) => {
-          if( this.utils.geometryWithinRadius(geojson.geometry, f.getCanvasXY(), center, e.containerPoint, f.size ? (f.size * mpp) : r) ) {
-            intersects.push(f.geojson);
-            next();
-          }
-        });
-      },
-      (err) => {
-        onIntersectsListCreated.call(this, e, intersects);
-      }
-    );
-    
-  }
+        if ( this.utils.geometryWithinRadius(f.geojson, f.getCanvasXY(), center, e.containerPoint, f.size ? f.size * mpp : r)) {
+            intersects.push(f);
+        }
+    }
+
+    onIntersectsListCreated.call(this, e, intersects);
+}
 
 function onIntersectsListCreated(e, intersects) {
   if( e.type == 'click' && this.onClick ) {
@@ -89,13 +70,6 @@ function onIntersectsListCreated(e, intersects) {
   if( this.onMouseOut && mouseout.length > 0 ) this.onMouseOut.call(this, mouseout, e);
 
   if( this.debug ) console.log('intersects time: '+(new Date().getTime() - t)+'ms');
-
-  running = false;
-  if( reschedule ) {
-    var e = reschedule;
-    reschedule = null;
-    this.intersects(e);
-  }
 }
 
 function isInBounds(feature, latlng) {

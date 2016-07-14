@@ -5,6 +5,9 @@ function CanvasFeature(geojson, id) {
     // this value should match the value used for rendering points
     this.size = 5;
     
+    // User space object for store variables used for rendering geometry
+    this.render = {};
+
     var cache = {
         // projected points on canvas
         canvasXY : null,
@@ -25,7 +28,7 @@ function CanvasFeature(geojson, id) {
     
     // clear the canvasXY stored values
     this.clearCache = function() {
-        cache.canvasXY = null;
+        delete cache.canvasXY;
         cache.zoom = -1;
     }
     
@@ -45,39 +48,17 @@ function CanvasFeature(geojson, id) {
       return true;
     }
 
-    /**
-     * To options for wrapper.  One, you provide a geojson object.
-     * Two, you provide a accessor method and id.  When this class
-     * needs access to the GeoJSON, the id will be passed, as well
-     * as the callback.
-     */
-    if( typeof geojson === 'object' ) {
-        this._geojson = geojson;
-        
-        // TODO: allow user to override default variable
+
+    if( geojson.geometry ) {
+        this.geojson = geojson.geometry;
         this.id = geojson.properties.id;
-
-        this.type = geojson.type;
-        this._getGeoJson = function(id, callback) {
-            callback(this._geojson);
-        }
     } else {
-        this._getGeoJson = geojson;
-        this._id = id;
+        this.geojson = geojson;
+        this.id = id;
     }
 
-    this.getGeoJson = function(callback) {
-        this._getGeoJson(this._id, callback);
-    }
+    this.type = this.geojson.type;
 
-    this.getGeoJson((geojson) => {
-        if( geojson.geometry ) {
-            this.type = geojson.geometry.type;
-        } else {
-            this.type = geojson.type;
-        }
-    });
-    
     // optional, per feature, renderer
     this.renderer = null;
 }

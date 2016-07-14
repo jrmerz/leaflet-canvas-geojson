@@ -11,6 +11,8 @@ function CanvasLayer() {
   // list of geojson features to draw
   //   - these will draw in order
   this.features = [];
+  // lookup index
+  this.featureIndex = {};
 
   // list of current features under the mouse
   this.intersectList = [];
@@ -48,10 +50,6 @@ function CanvasLayer() {
     var size = this._map.getSize();
     this._canvas.width = size.x;
     this._canvas.height = size.y;
-
-    this.clearCache();
-
-    this.render();
   };
 
   // clear canvas
@@ -60,6 +58,8 @@ function CanvasLayer() {
     var ctx = this._ctx;
 
     ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // make sure this is called after...
     this.reposition();
   }
 
@@ -80,13 +80,7 @@ function CanvasLayer() {
 
   // get layer feature via geojson object
   this.getCanvasFeatureById = function(id) {
-    for( var i = 0; i < this.features.length; i++ ) {
-      if( this.features[i].id == id ) {
-        return this.features[i];
-      }
-    }
-
-    return null;
+    return this.featureIndex[id];
   }
 
   // get the meters per px and a certain point;

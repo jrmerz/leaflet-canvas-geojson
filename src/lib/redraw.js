@@ -1,4 +1,3 @@
-var async = require('async');
 
 var running = false;
 var reschedule = null;
@@ -46,13 +45,11 @@ module.exports = function(layer) {
   layer.redraw = function(diff) {
     if( !this.showing ) return;
 
-    if( running ) {
-      reschedule = true;
-      return;
-    }
-    running = true;
-
-    this.reposition();
+    // if( running ) {
+    //   reschedule = true;
+    //   return;
+    // }
+    // running = true;
 
     // objects should keep track of last bbox and zoom of map
     // if this hasn't changed the ll -> container pt is not needed
@@ -61,42 +58,21 @@ module.exports = function(layer) {
 
     if( this.debug ) t = new Date().getTime();
 
-    var i = 0;
-    async.eachSeries(
-      this.features,
-      (f, next) => {
-        // handle single or multiple features
-        if( f.isCanvasFeatures ) {
+    var f, i, subfeature, j;
+    for( i = 0; i < this.features.length; i++ ) {
+      f = this.features[i];
+      if( f.isCanvasFeatures ) {
 
-          async.eachSeries(
-            f.canvasFeatures,
-            (subfeature, callback) => {
-              this.prepareForRedraw(subfeature, bounds, zoom, diff, callback);
-            },
-            (err) => {
-              next();
-            }
-          )
-
-        } else {
-          this.prepareForRedraw(f, bounds, zoom, diff, () => {
-            // there are 'decent' reasons for this
-            i++
-            if( i % 500 === 0 ) {
-              setTimeout(function(){
-                next();
-              }, 0);
-            } else {
-              next();
-            }
-          });
+        for( j = 0; j < f.canvasFeatures.length; j++ ) {
+          this.prepareForRedraw(f.canvasFeatures[j], bounds, zoom, diff);
         }
 
-      },
-      (err) => {
-        this.redrawFeatures();
+      } else {
+        this.prepareForRedraw(f, bounds, zoom, diff);
       }
-    );
+    }
+
+    this.redrawFeatures();
   },
 
   layer.redrawFeatures = function() {
@@ -110,99 +86,101 @@ module.exports = function(layer) {
     if( this.debug ) console.log('Render time: '+(new Date().getTime() - t)+'ms; avg: '+
       ((new Date().getTime() - t) / this.features.length)+'ms');
 
-    running = false;
-    if( reschedule ) {
-      console.log('reschedule');
-      reschedule = false;
-      this.redraw();
-    }
+    // running = false;
+    // if( reschedule ) {
+    //   console.log('reschedule');
+    //   reschedule = false;
+    //   this.redraw();
+    // }
   }
 
   layer.redrawFeature = function(canvasFeature) {
       var renderer = canvasFeature.renderer ? canvasFeature.renderer : this.renderer;
-      
+      var xy = canvasFeature.getCanvasXY();
+
+      // badness...
+      if( !xy ) return;
+
       // call feature render function in feature scope; feature is passed as well
       renderer.call(
           canvasFeature, // scope
           this._ctx, 
-          canvasFeature.getCanvasXY(), 
+          xy, 
           this._map,
           canvasFeature
       );
   }
 
   // redraw an individual feature
-  layer.prepareForRedraw = function(canvasFeature, bounds, zoom, diff, next) {
+  layer.prepareForRedraw = function(canvasFeature, bounds, zoom, diff) {
     //if( feature.geojson.properties.debug ) debugger;
 
     // ignore anything flagged as hidden
     // we do need to clear the cache in this case
     if( !canvasFeature.visible ) {
       canvasFeature.clearCache();
-      return next();
+      return;
     }
 
-    canvasFeature.getGeoJson((geojson) => {
-      // now lets check cache to see if we need to reproject the
-      // xy coordinates
-      // actually project to xy if needed
-      var reproject = canvasFeature.requiresReprojection(zoom);
-      if( reproject ) {
-        this.toCanvasXY(canvasFeature, geojson, zoom);
-      }  // end reproject
+    var geojson = canvasFeature.geojson;
 
-      // if this was a simple pan event (a diff was provided) and we did not reproject
-      // move the feature by diff x/y
-      if( diff && !reproject ) {
-        if( geojson.geometry.type == 'Point' ) {
+    // now lets check cache to see if we need to reproject the
+    // xy coordinates
+    // actually project to xy if needed
+    var reproject = canvasFeature.requiresReprojection(zoom);
+    if( reproject ) {
+      this.toCanvasXY(canvasFeature, geojson, zoom);
+    }  // end reproject
 
-          var xy = canvasFeature.getCanvasXY()
-          xy.x += diff.x;
-          xy.y += diff.y;
+    // if this was a simple pan event (a diff was provided) and we did not reproject
+    // move the feature by diff x/y
+    if( diff && !reproject ) {
+      if( geojson.type == 'Point' ) {
 
-        } else if( geojson.geometry.type == 'LineString' ) {
+        var xy = canvasFeature.getCanvasXY()
+        xy.x += diff.x;
+        xy.y += diff.y;
 
-          this.utils.moveLine(canvasFeature.getCanvasXY(), diff);
+      } else if( geojson.type == 'LineString' ) {
 
-        } else if ( geojson.geometry.type == 'Polygon' ) {
-        
-          this.utils.moveLine(canvasFeature.getCanvasXY(), diff);
-        
-        } else if ( geojson.geometry.type == 'MultiPolygon' ) {
-          var xy = canvasFeature.getCanvasXY();
-          for( var i = 0; i < xy.length; i++ ) {
-            this.utils.moveLine(xy[i], diff);
-          }
+        this.utils.moveLine(canvasFeature.getCanvasXY(), diff);
+
+      } else if ( geojson.type == 'Polygon' ) {
+      
+        this.utils.moveLine(canvasFeature.getCanvasXY(), diff);
+      
+      } else if ( geojson.type == 'MultiPolygon' ) {
+        var xy = canvasFeature.getCanvasXY();
+        for( var i = 0; i < xy.length; i++ ) {
+          this.utils.moveLine(xy[i], diff);
         }
       }
+    }
 
-      // ignore anything not in bounds
-      if( geojson.geometry.type == 'Point' ) {
-        if( !bounds.contains(canvasFeature.latlng) ) {
-          return next();
-        }
-      } else if( geojson.geometry.type == 'MultiPolygon' ) {
+    // ignore anything not in bounds
+    if( geojson.type == 'Point' ) {
+      if( !bounds.contains(canvasFeature.latlng) ) {
+        return;
+      }
+    } else if( geojson.type == 'MultiPolygon' ) {
 
-        // just make sure at least one polygon is within range
-        var found = false;
-        for( var i = 0; i < canvasFeature.bounds.length; i++ ) {
-          if( bounds.contains(canvasFeature.bounds[i]) || bounds.intersects(canvasFeature.bounds[i]) ) {
-            found = true;
-            break;
-          }
-        }
-        if( !found ) {
-          return next();
-        }
-
-      } else {
-        if( !bounds.contains(canvasFeature.bounds) && !bounds.intersects(canvasFeature.bounds) ) {
-          return next();
+      // just make sure at least one polygon is within range
+      var found = false;
+      for( var i = 0; i < canvasFeature.bounds.length; i++ ) {
+        if( bounds.contains(canvasFeature.bounds[i]) || bounds.intersects(canvasFeature.bounds[i]) ) {
+          found = true;
+          break;
         }
       }
+      if( !found ) {
+        return;
+      }
 
-      next();
-    });
+    } else {
+      if( !bounds.contains(canvasFeature.bounds) && !bounds.intersects(canvasFeature.bounds) ) {
+        return;
+      }
+    }
     
    };
 }

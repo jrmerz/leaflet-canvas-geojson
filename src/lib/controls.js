@@ -1,6 +1,7 @@
 module.exports = function(layer) {
     layer.prototype.removeAll = function() {
         this.features = [];
+        this.featureIndex = {};
         this.intersectList = [];
         this.reset();
     }

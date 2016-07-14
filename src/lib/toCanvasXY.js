@@ -5,11 +5,11 @@ module.exports = function(layer) {
         if( !feature.cache ) feature.cache = {};
         var canvasXY;
 
-        if( geojson.geometry.type == 'Point' ) {
+        if( geojson.type == 'Point' ) {
 
         canvasXY = this._map.latLngToContainerPoint([
-            geojson.geometry.coordinates[1],
-            geojson.geometry.coordinates[0]
+            geojson.coordinates[1],
+            geojson.coordinates[0]
         ]);
 
         if( feature.size ) {
@@ -17,21 +17,21 @@ module.exports = function(layer) {
             canvasXY[1] = canvasXY[1] - feature.size / 2;
         }
 
-        } else if( geojson.geometry.type == 'LineString' ) {
+        } else if( geojson.type == 'LineString' ) {
             
-        canvasXY = this.utils.projectLine(geojson.geometry.coordinates, this._map);
+        canvasXY = this.utils.projectLine(geojson.coordinates, this._map);
         trimCanvasXY(canvasXY);
     
-        } else if ( geojson.geometry.type == 'Polygon' ) {
+        } else if ( geojson.type == 'Polygon' ) {
         
-        canvasXY = this.utils.projectLine(geojson.geometry.coordinates[0], this._map);
+        canvasXY = this.utils.projectLine(geojson.coordinates[0], this._map);
         trimCanvasXY(canvasXY);
         
-        } else if ( geojson.geometry.type == 'MultiPolygon' ) {
+        } else if ( geojson.type == 'MultiPolygon' ) {
             canvasXY = [];
         
-            for( var i = 0; i < geojson.geometry.coordinates.length; i++ ) {
-                var xy = this.utils.projectLine(geojson.geometry.coordinates[i][0], this._map);
+            for( var i = 0; i < geojson.coordinates.length; i++ ) {
+                var xy = this.utils.projectLine(geojson.coordinates[i][0], this._map);
                 trimCanvasXY(xy);
                 canvasXY.push(xy);
             }
