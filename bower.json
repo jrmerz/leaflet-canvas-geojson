@@ -5,6 +5,7 @@
   "authors": [
     "Justin Merz <jrmerz@gmail.com>"
   ],
+  "version": "0.0.7",
   "license": "GPL-3.0",
   "keywords": [
     "leaflet",

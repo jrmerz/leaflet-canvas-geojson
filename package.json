@@ -1,6 +1,6 @@
 {
   "name": "leaflet-canvas-geojson",
-  "version": "0.0.6",
+  "version": "0.0.7",
   "description": "leaflet layer for rendering vectors on single canvas layer",
   "main": "index.js",
   "directories": {
