@@ -1,9 +1,8 @@
-
+var intersectsUtils = require('./intersects');
 var running = false;
 var reschedule = null;
 
 module.exports = function(layer) {
-    
   layer.render = function(e) {
     if( !this.allowPanRendering && this.moving ) {
       return;
@@ -56,11 +55,10 @@ module.exports = function(layer) {
     var bounds = this._map.getBounds();
     var zoom = this._map.getZoom();
 
-    if( this.debug ) t = new Date().getTime();
-
     var f, i, subfeature, j;
     for( i = 0; i < this.features.length; i++ ) {
       f = this.features[i];
+
       if( f.isCanvasFeatures ) {
 
         for( j = 0; j < f.canvasFeatures.length; j++ ) {
@@ -72,26 +70,17 @@ module.exports = function(layer) {
       }
     }
 
-    this.redrawFeatures();
+    var features = intersectsUtils.intersectsBbox([[bounds.getWest(), bounds.getSouth()], [bounds.getEast(), bounds.getNorth()]]);
+    this.redrawFeatures(features);
   },
 
-  layer.redrawFeatures = function() {
+  layer.redrawFeatures = function(features) {
     this.clearCanvas();
     
-    for( var i = 0; i < this.features.length; i++ ) {
-      if( !this.features[i].visible ) continue;
-      this.redrawFeature(this.features[i]);
+    for( var i = 0; i < features.length; i++ ) {
+      if( !features[i].visible ) continue;
+      this.redrawFeature(features[i]);
     }
-
-    if( this.debug ) console.log('Render time: '+(new Date().getTime() - t)+'ms; avg: '+
-      ((new Date().getTime() - t) / this.features.length)+'ms');
-
-    // running = false;
-    // if( reschedule ) {
-    //   console.log('reschedule');
-    //   reschedule = false;
-    //   this.redraw();
-    // }
   }
 
   layer.redrawFeature = function(canvasFeature) {
@@ -103,11 +92,11 @@ module.exports = function(layer) {
 
       // call feature render function in feature scope; feature is passed as well
       renderer.call(
-          canvasFeature, // scope
-          this._ctx, 
-          xy, 
-          this._map,
-          canvasFeature
+          canvasFeature, // scope (canvas feature)
+          this._ctx,     // canvas 2d context
+          xy,            // xy points to draw
+          this._map,     // leaflet map instance
+          canvasFeature  // canvas feature
       );
   }
 
@@ -122,7 +111,7 @@ module.exports = function(layer) {
       return;
     }
 
-    var geojson = canvasFeature.geojson;
+    var geojson = canvasFeature.geojson.geometry;
 
     // now lets check cache to see if we need to reproject the
     // xy coordinates
@@ -156,31 +145,5 @@ module.exports = function(layer) {
         }
       }
     }
-
-    // ignore anything not in bounds
-    if( geojson.type == 'Point' ) {
-      if( !bounds.contains(canvasFeature.latlng) ) {
-        return;
-      }
-    } else if( geojson.type == 'MultiPolygon' ) {
-
-      // just make sure at least one polygon is within range
-      var found = false;
-      for( var i = 0; i < canvasFeature.bounds.length; i++ ) {
-        if( bounds.contains(canvasFeature.bounds[i]) || bounds.intersects(canvasFeature.bounds[i]) ) {
-          found = true;
-          break;
-        }
-      }
-      if( !found ) {
-        return;
-      }
-
-    } else {
-      if( !bounds.contains(canvasFeature.bounds) && !bounds.intersects(canvasFeature.bounds) ) {
-        return;
-      }
-    }
-    
    };
 }

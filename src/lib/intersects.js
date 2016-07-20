@@ -1,3 +1,7 @@
+var RTree = require('rtree');
+var rTree = new RTree();
+var layer;
+
 /** 
  * Handle mouse intersection events
  * e - leaflet event
@@ -5,37 +9,25 @@
 function intersects(e) {
     if( !this.showing ) return;
 
-    var t = new Date().getTime();
-    var mpp = this.getMetersPerPx(e.latlng);
-    var r = mpp * 5; // 5 px radius buffer;
+    var dpp = this.getDegreesPerPx(e.latlng);
 
-    var center = {
-      type : 'Point',
-      coordinates : [e.latlng.lng, e.latlng.lat]
-    };
+    var x1 = e.latlng.lng - dpp;
+    var x2 = e.latlng.lng + dpp;
+    var y1 = e.latlng.lat - dpp;
+    var y2 = e.latlng.lat + dpp;
 
-    var f;
-    var intersects = [];
-
-    for( var i = 0; i < this.features.length; i++ ) {
-        f = this.features[i];
-
-        if (!f.visible) {
-          continue;
-        }
-        if (!f.getCanvasXY()) {
-          continue;
-        }
-        if (!isInBounds(f, e.latlng)) {
-          continue;
-        }
-
-        if ( this.utils.geometryWithinRadius(f.geojson, f.getCanvasXY(), center, e.containerPoint, f.size ? f.size * mpp : r)) {
-            intersects.push(f);
-        }
-    }
+    var intersects = intersectsBbox([[x1, y1], [x2, y2]]);
 
     onIntersectsListCreated.call(this, e, intersects);
+}
+
+function intersectsBbox(bbox) {
+    var clFeatures = [];
+    var features = rTree.bbox(bbox);
+    for( var i = 0; i < features.length; i++ ) {
+      clFeatures.push(layer.getCanvasFeatureById(features[i].properties.id));
+    }
+    return clFeatures;
 }
 
 function onIntersectsListCreated(e, intersects) {
@@ -68,25 +60,31 @@ function onIntersectsListCreated(e, intersects) {
   if( this.onMouseOver && mouseover.length > 0 ) this.onMouseOver.call(this, mouseover, e);
   if( this.onMouseMove ) this.onMouseMove.call(this, mousemove, e); // always fire
   if( this.onMouseOut && mouseout.length > 0 ) this.onMouseOut.call(this, mouseout, e);
-
-  if( this.debug ) console.log('intersects time: '+(new Date().getTime() - t)+'ms');
 }
 
-function isInBounds(feature, latlng) {
-    if( feature.bounds ) {
-        if( Array.isArray(feature.bounds) ) {
+function rebuild(clFeatures) {
+  var features = [];
+  for( var i = 0; i < clFeatures.length; i++ ) {
+    features.push(clFeatures[i].geojson); 
+  }
 
-        for( var i = 0; i < feature.bounds.length; i++ ) {
-            if( feature.bounds[i].contains(latlng) ) return true;
-        }
-
-        } else if ( feature.bounds.contains(latlng) ) {
-        return true;
-        }
-
-        return false;
-    }
-    return true;
+  rTree = new RTree();
+  rTree.geoJSON({
+    type : 'FeatureCollection',
+    features : features
+  });
 }
 
-module.exports = intersects;
+function add(clFeature) {
+  rTree.geoJSON(clFeature.geojson);
+}
+
+module.exports = {
+  intersects : intersects,
+  intersectsBbox : intersectsBbox,
+  rebuild : rebuild,
+  add : add,
+  setLayer : function(l) {
+    layer = l;
+  }
+}

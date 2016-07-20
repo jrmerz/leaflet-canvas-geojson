@@ -1,4 +1,4 @@
-var intersects = require('./intersects');
+var intersectUtils = require('./intersects');
 var count = 0;
 
 module.exports = function(layer) {
@@ -24,6 +24,8 @@ module.exports = function(layer) {
         // set canvas and canvas context shortcuts
         this._canvas = createCanvas(options);
         this._ctx = this._canvas.getContext('2d');
+
+        intersectUtils.setLayer(this);
     };
     
     layer.onAdd = function(map) {
@@ -57,8 +59,8 @@ module.exports = function(layer) {
             'zoomend'   : endZoom,
         //    'movestart' : moveStart,
             'moveend'   : moveEnd,
-            'mousemove' : intersects,
-            'click'     : intersects
+            'mousemove' : intersectUtils.intersects,
+            'click'     : intersectUtils.intersects
         }, this);
 
         this.reset();
@@ -78,8 +80,8 @@ module.exports = function(layer) {
             'moveend'   : moveEnd,
             'zoomstart' : startZoom,
             'zoomend'   : endZoom,
-            'mousemove' : intersects,
-            'click'     : intersects
+            'mousemove' : intersectUtils.intersects,
+            'click'     : intersectUtils.intersects
         }, this);
     }
 }

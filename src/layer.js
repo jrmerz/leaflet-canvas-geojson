@@ -87,6 +87,10 @@ function CanvasLayer() {
   this.getMetersPerPx = function(latlng) {
     return this.utils.metersPerPx(latlng, this._map);
   }
+
+  this.getDegreesPerPx = function(latlng) {
+    return this.utils.degreesPerPx(latlng, this._map);
+  }
 };
 
 var layer = new CanvasLayer();

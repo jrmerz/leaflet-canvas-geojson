@@ -50,14 +50,26 @@ function CanvasFeature(geojson, id) {
 
 
     if( geojson.geometry ) {
-        this.geojson = geojson.geometry;
-        this.id = geojson.properties.id;
+        this.geojson = {
+            type : 'Feature',
+            geometry : geojson.geometry,
+            properties : {
+                id : id || geojson.properties.id
+            }
+        }
+        this.id = id;
     } else {
-        this.geojson = geojson;
+        this.geojson = {
+            type : 'Feature',
+            geometry : geojson,
+            properties : {
+                id : id
+            }
+        }
         this.id = id;
     }
 
-    this.type = this.geojson.type;
+    this.type = this.geojson.geometry.type;
 
     // optional, per feature, renderer
     this.renderer = null;

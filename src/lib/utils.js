@@ -84,6 +84,17 @@ module.exports = {
     return distanceX;
   },
 
+  degreesPerPx : function(ll, map) {
+    var pointC = map.latLngToContainerPoint(ll); // convert to containerpoint (pixels)
+    var pointX = [pointC.x + 1, pointC.y]; // add one pixel to x
+
+    // convert containerpoints to latlng's
+    var latLngC = map.containerPointToLatLng(pointC);
+    var latLngX = map.containerPointToLatLng(pointX);
+
+    return Math.abs(latLngC.lng - latLngX.lng); // calculate distance between c and x (latitude)
+  },
+
   // from http://www.movable-type.co.uk/scripts/latlong.html
   pointDistance : function (pt1, pt2) {
     var lon1 = pt1.coordinates[0],
