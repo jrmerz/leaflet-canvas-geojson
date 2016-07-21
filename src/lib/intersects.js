@@ -11,22 +11,45 @@ function intersects(e) {
 
     var dpp = this.getDegreesPerPx(e.latlng);
 
+    var mpp = this.getMetersPerPx(e.latlng);
+    var r = mpp * 5; // 5 px radius buffer;
+
+    var center = {
+      type : 'Point',
+      coordinates : [e.latlng.lng, e.latlng.lat]
+    };
+
+    var containerPoint = e.containerPoint;
+
     var x1 = e.latlng.lng - dpp;
     var x2 = e.latlng.lng + dpp;
     var y1 = e.latlng.lat - dpp;
     var y2 = e.latlng.lat + dpp;
 
-    var intersects = intersectsBbox([[x1, y1], [x2, y2]]);
+    var intersects = intersectsBbox([[x1, y1], [x2, y2]], r, center, containerPoint);
 
     onIntersectsListCreated.call(this, e, intersects);
 }
 
-function intersectsBbox(bbox) {
+function intersectsBbox(bbox, precision, center, containerPoint) {
     var clFeatures = [];
     var features = rTree.bbox(bbox);
-    for( var i = 0; i < features.length; i++ ) {
+    var i, f;
+
+    for( i = 0; i < features.length; i++ ) {
       clFeatures.push(layer.getCanvasFeatureById(features[i].properties.id));
     }
+
+    // now make sure this actually overlap if precision is given
+    if( precision ) {
+      for( var i = clFeatures.length - 1; i >= 0; i-- ) {
+        f = clFeatures[i];
+        if( !layer.utils.geometryWithinRadius(f.geojson.geometry, f.getCanvasXY(), center, containerPoint, precision) ) {
+          clFeatures.splice(i, 1);
+        }
+      }
+    }
+
     return clFeatures;
 }
 

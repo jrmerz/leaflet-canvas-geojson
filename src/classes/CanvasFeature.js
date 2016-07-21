@@ -57,7 +57,7 @@ function CanvasFeature(geojson, id) {
                 id : id || geojson.properties.id
             }
         }
-        this.id = id;
+        this.id = id || geojson.properties.id;
     } else {
         this.geojson = {
             type : 'Feature',
