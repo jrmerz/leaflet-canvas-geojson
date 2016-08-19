@@ -14,10 +14,11 @@ module.exports = function(layer) {
     }
 
     var diff = null;
-    if( e && e.type == 'moveend' ) {
-      var center = this._map.getCenter();
+    var center = this._map.getCenter();
 
+    if( e && e.type == 'moveend' ) {
       var pt = this._map.latLngToContainerPoint(center);
+
       if( this.lastCenterLL ) {
         var lastXy = this._map.latLngToContainerPoint(this.lastCenterLL);
         diff = {
@@ -25,10 +26,9 @@ module.exports = function(layer) {
           y : lastXy.y - pt.y
         }
       }
-
-      this.lastCenterLL = center;
     }
-
+    
+    this.lastCenterLL = center;
 
     if( !this.zooming ) {
       this.redraw(diff);

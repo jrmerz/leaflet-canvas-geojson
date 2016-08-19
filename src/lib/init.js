@@ -46,15 +46,16 @@ module.exports = function(layer) {
 
         // hack: listen to predrag event launched by dragging to
         // set container in position (0, 0) in screen coordinates
-        /*if (map.dragging.enabled()) {
-            map.dragging._draggable.on('predrag', function() {
-                moveStart.apply(this);
-            }, this);
-        }*/
+        // if (map.dragging.enabled()) {
+        //     map.dragging._draggable.on('predrag', function() {
+        //         var d = map.dragging._draggable;
+        //         L.DomUtil.setPosition(this._canvas, { x: -d._newPos.x, y: -d._newPos.y });
+        //     }, this);
+        // }
 
         map.on({
-            'viewreset' : this.reset,
-            'resize'    : this.reset,
+            'viewreset' : this.onResize,
+            'resize'    : this.onResize,
             'zoomstart' : startZoom,
             'zoomend'   : endZoom,
         //    'movestart' : moveStart,
@@ -74,8 +75,8 @@ module.exports = function(layer) {
     layer.onRemove = function(map) {
         this._container.parentNode.removeChild(this._container);
         map.off({
-            'viewreset' : this.reset,
-            'resize'    : this.reset,
+            'viewreset' : this.onResize,
+            'resize'    : this.onResize,
          //   'movestart' : moveStart,
             'moveend'   : moveEnd,
             'zoomstart' : startZoom,
@@ -83,6 +84,18 @@ module.exports = function(layer) {
             'mousemove' : intersectUtils.intersects,
             'click'     : intersectUtils.intersects
         }, this);
+    }
+
+    var resizeTimer = -1;
+    layer.onResize = function() {
+        if( resizeTimer !== -1 ) clearTimeout(resizeTimer);
+
+        resizeTimer = setTimeout(function(){
+            resizeTimer = -1;
+            this.reset();
+            this.clearCache();
+            this.render();
+        }.bind(this), 100);
     }
 }
 
