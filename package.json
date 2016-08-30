@@ -25,6 +25,8 @@
   "homepage": "https://github.com/ucd-cws/leaflet-canvas-geojson#readme",
   "dependencies": {
     "async": "^2.0.0-rc.6",
+    "babel-preset-es2015": "^6.14.0",
+    "babelify": "^7.3.0",
     "rtree": "^1.4.2"
   },
   "devDependencies": {

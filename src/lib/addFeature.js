@@ -1,6 +1,5 @@
 var CanvasFeature = require('../classes/CanvasFeature');
 var CanvasFeatures = require('../classes/CanvasFeatures');
-var intersectUtils = require('./intersects');
 
 module.exports = function(layer) {
   layer.addCanvasFeatures = function(features) {
@@ -8,7 +7,7 @@ module.exports = function(layer) {
       this.addCanvasFeature(features[i], false, null, false);
     }
 
-    intersectUtils.rebuild(this.features);
+    this.rebuildIndex(this.features);
   };
 
   layer.addCanvasFeature = function(feature, bottom, callback) {
@@ -25,7 +24,7 @@ module.exports = function(layer) {
 
     this.featureIndex[feature.id] = feature;
 
-    intersectUtils.add(feature);
+    this.addToIndex(feature);
   },
 
   // returns true if re-render required.  ie the feature was visible;
@@ -35,7 +34,7 @@ module.exports = function(layer) {
 
     this.splice(index, 1);
 
-    intersectUtils.rebuild(this.features);
+    this.rebuildIndex(this.features);
 
     if( this.feature.visible ) return true;
     return false;
@@ -44,6 +43,6 @@ module.exports = function(layer) {
   layer.removeAll = function() {
     this.allowPanRendering = true;
     this.features = [];
-    intersectUtils.rebuild(this.features);
+    this.rebuildIndex(this.features);
   }
 }

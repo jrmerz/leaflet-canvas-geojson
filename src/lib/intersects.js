@@ -1,6 +1,5 @@
 var RTree = require('rtree');
-var rTree = new RTree();
-var layer;
+
 
 /** 
  * Handle mouse intersection events
@@ -26,25 +25,27 @@ function intersects(e) {
     var y1 = e.latlng.lat - dpp;
     var y2 = e.latlng.lat + dpp;
 
-    var intersects = intersectsBbox([[x1, y1], [x2, y2]], r, center, containerPoint);
+    var intersects = this.intersectsBbox([[x1, y1], [x2, y2]], r, center, containerPoint);
 
     onIntersectsListCreated.call(this, e, intersects);
 }
 
 function intersectsBbox(bbox, precision, center, containerPoint) {
     var clFeatures = [];
-    var features = rTree.bbox(bbox);
-    var i, f;
+    var features = this.rTree.bbox(bbox);
+    var i, f, clFeature;
 
     for( i = 0; i < features.length; i++ ) {
-      clFeatures.push(layer.getCanvasFeatureById(features[i].properties.id));
+      clFeature = this.getCanvasFeatureById(features[i].properties.id);
+      if( !clFeature.visible ) continue;
+      clFeatures.push(clFeature);
     }
 
     // now make sure this actually overlap if precision is given
     if( precision ) {
       for( var i = clFeatures.length - 1; i >= 0; i-- ) {
         f = clFeatures[i];
-        if( !layer.utils.geometryWithinRadius(f.geojson.geometry, f.getCanvasXY(), center, containerPoint, precision) ) {
+        if( !this.utils.geometryWithinRadius(f.geojson.geometry, f.getCanvasXY(), center, containerPoint, precision) ) {
           clFeatures.splice(i, 1);
         }
       }
@@ -91,23 +92,21 @@ function rebuild(clFeatures) {
     features.push(clFeatures[i].geojson); 
   }
 
-  rTree = new RTree();
-  rTree.geoJSON({
+  this.rTree = new RTree();
+  this.rTree.geoJSON({
     type : 'FeatureCollection',
     features : features
   });
 }
 
 function add(clFeature) {
-  rTree.geoJSON(clFeature.geojson);
+  this.rTree.geoJSON(clFeature._rtreeGeojson);
 }
 
-module.exports = {
-  intersects : intersects,
-  intersectsBbox : intersectsBbox,
-  rebuild : rebuild,
-  add : add,
-  setLayer : function(l) {
-    layer = l;
-  }
+// TODO: need to prototype these functions
+module.exports = function(layer) {
+  layer.intersects = intersects;
+  layer.intersectsBbox = intersectsBbox;
+  layer.rebuildIndex = rebuild;
+  layer.addToIndex = add;
 }

@@ -48,15 +48,18 @@ function CanvasFeature(geojson, id) {
       return true;
     }
 
+    // optional, per feature, renderer
+    this.renderer = null;
 
+    // geojson was options object
+    if( geojson.geojson ) {
+        this.renderer = geojson.renderer;
+        if( geojson.size ) this.size = geojson.size;
+        geojson = geojson.geojson;
+    }
+    
     if( geojson.geometry ) {
-        this.geojson = {
-            type : 'Feature',
-            geometry : geojson.geometry,
-            properties : {
-                id : id || geojson.properties.id
-            }
-        }
+        this.geojson = geojson;
         this.id = id || geojson.properties.id;
     } else {
         this.geojson = {
@@ -69,10 +72,15 @@ function CanvasFeature(geojson, id) {
         this.id = id;
     }
 
-    this.type = this.geojson.geometry.type;
+    this._rtreeGeojson = {
+        type : 'Feature',
+        geometry : this.geojson.geometry,
+        properties : {
+            id : id || this.geojson.properties.id
+        }
+    }
 
-    // optional, per feature, renderer
-    this.renderer = null;
+    this.type = this.geojson.geometry.type;
 }
 
 module.exports = CanvasFeature;

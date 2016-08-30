@@ -8,26 +8,9 @@ function CanvasLayer() {
   // include events
   this.includes = [L.Mixin.Events];
 
-  // list of geojson features to draw
-  //   - these will draw in order
-  this.features = [];
-  // lookup index
-  this.featureIndex = {};
-
-  // list of current features under the mouse
-  this.intersectList = [];
-
-  // used to calculate pixels moved from center
-  this.lastCenterLL = null;
-
   // geometry helpers
   this.utils = require('./lib/utils');
-  
-  this.moving = false;
-  this.zooming = false;
-  // TODO: make this work
-  this.allowPanRendering = false;
-  
+
   // recommended you override this.  you can also set a custom renderer
   // for each CanvasFeature if you wish
   this.renderer = require('./defaultRenderer');

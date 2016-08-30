@@ -1,4 +1,3 @@
-var intersectsUtils = require('./intersects');
 var running = false;
 var reschedule = null;
 
@@ -70,7 +69,7 @@ module.exports = function(layer) {
       }
     }
 
-    var features = intersectsUtils.intersectsBbox([[bounds.getWest(), bounds.getSouth()], [bounds.getEast(), bounds.getNorth()]]);
+    var features = this.intersectsBbox([[bounds.getWest(), bounds.getSouth()], [bounds.getEast(), bounds.getNorth()]], null, null, null);
     this.redrawFeatures(features);
   },
 

@@ -1,13 +1,28 @@
 var intersectUtils = require('./intersects');
+var RTree = require('rtree');
 var count = 0;
 
 module.exports = function(layer) {
     
     layer.initialize = function(options) {
-        this.features = [];
-        this.featureIndex = {};
-        this.intersectList = [];
         this.showing = true;
+
+        // list of geojson features to draw
+        //   - these will draw in order
+        this.features = [];
+        // lookup index
+        this.featureIndex = {};
+
+        // list of current features under the mouse
+        this.intersectList = [];
+
+        // used to calculate pixels moved from center
+        this.lastCenterLL = null;
+        
+        this.moving = false;
+        this.zooming = false;
+        // TODO: make this work
+        this.allowPanRendering = false;
 
         // set options
         options = options || {};
@@ -21,12 +36,14 @@ module.exports = function(layer) {
             delete this.options[e];
         }.bind(this));
 
+        this.rTree = new RTree();
+
         // set canvas and canvas context shortcuts
         this._canvas = createCanvas(options);
         this._ctx = this._canvas.getContext('2d');
-
-        intersectUtils.setLayer(this);
     };
+
+    intersectUtils(layer);
     
     layer.onAdd = function(map) {
         this._map = map;
@@ -60,8 +77,8 @@ module.exports = function(layer) {
             'zoomend'   : endZoom,
         //    'movestart' : moveStart,
             'moveend'   : moveEnd,
-            'mousemove' : intersectUtils.intersects,
-            'click'     : intersectUtils.intersects
+            'mousemove' : this.intersects,
+            'click'     : this.intersects
         }, this);
 
         this.reset();
@@ -81,8 +98,8 @@ module.exports = function(layer) {
             'moveend'   : moveEnd,
             'zoomstart' : startZoom,
             'zoomend'   : endZoom,
-            'mousemove' : intersectUtils.intersects,
-            'click'     : intersectUtils.intersects
+            'mousemove' : this.intersects,
+            'click'     : this.intersects
         }, this);
     }
 
