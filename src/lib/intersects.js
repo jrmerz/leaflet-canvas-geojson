@@ -88,8 +88,10 @@ function onIntersectsListCreated(e, intersects) {
 
 function rebuild(clFeatures) {
   var features = [];
+
   for( var i = 0; i < clFeatures.length; i++ ) {
-    features.push(clFeatures[i].geojson); 
+    features.push(clFeatures[i]._rtreeGeojson); 
+    clFeatures[i].order = i;
   }
 
   this.rTree = new RTree();

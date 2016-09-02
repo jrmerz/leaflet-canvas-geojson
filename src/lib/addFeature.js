@@ -25,6 +25,10 @@ module.exports = function(layer) {
     this.featureIndex[feature.id] = feature;
 
     this.addToIndex(feature);
+
+    for( var i = 0; i < this.features.length; i++ ) {
+      this.features[i].order = i;
+    }
   },
 
   // returns true if re-render required.  ie the feature was visible;

@@ -75,6 +75,13 @@ module.exports = function(layer) {
 
   layer.redrawFeatures = function(features) {
     this.clearCanvas();
+
+
+    features.sort(function(a, b){
+      if( a.order > b.order ) return 1;
+      if( a.order < b.order ) return -1;
+      return 0;
+    });
     
     for( var i = 0; i < features.length; i++ ) {
       if( !features[i].visible ) continue;
