@@ -45,7 +45,7 @@ function intersectsBbox(bbox, precision, center, containerPoint) {
     if( precision ) {
       for( var i = clFeatures.length - 1; i >= 0; i-- ) {
         f = clFeatures[i];
-        if( !this.utils.geometryWithinRadius(f.geojson.geometry, f.getCanvasXY(), center, containerPoint, precision) ) {
+        if( !this.utils.geometryWithinRadius(f._rtreeGeojson.geometry, f.getCanvasXY(), center, containerPoint, precision) ) {
           clFeatures.splice(i, 1);
         }
       }
@@ -102,7 +102,11 @@ function rebuild(clFeatures) {
 }
 
 function add(clFeature) {
-  this.rTree.geoJSON(clFeature._rtreeGeojson);
+  if( clFeature.isPoint ) {
+    clFeature.updatePointInRTree(this);
+  } else {
+    this.rTree.geoJSON(clFeature._rtreeGeojson);
+  }
 }
 
 // TODO: need to prototype these functions

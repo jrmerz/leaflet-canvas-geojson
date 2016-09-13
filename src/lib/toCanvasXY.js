@@ -37,7 +37,7 @@ module.exports = function(layer) {
             }
         }
         
-        feature.setCanvasXY(canvasXY, zoom);
+        feature.setCanvasXY(canvasXY, zoom, this);
     };
 }
 
