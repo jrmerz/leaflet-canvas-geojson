@@ -37,7 +37,7 @@ function intersectsBbox(bbox, precision, center, containerPoint) {
 
     for( i = 0; i < features.length; i++ ) {
       clFeature = this.getCanvasFeatureById(features[i].properties.id);
-      if( !clFeature.visible ) continue;
+      if(clFeature && !clFeature.visible ) continue;
       clFeatures.push(clFeature);
     }
 
@@ -45,7 +45,7 @@ function intersectsBbox(bbox, precision, center, containerPoint) {
     if( precision ) {
       for( var i = clFeatures.length - 1; i >= 0; i-- ) {
         f = clFeatures[i];
-        if( !this.utils.geometryWithinRadius(f._rtreeGeojson.geometry, f.getCanvasXY(), center, containerPoint, precision) ) {
+        if(f && !this.utils.geometryWithinRadius(f._rtreeGeojson.geometry, f.getCanvasXY(), center, containerPoint, precision) ) {
           clFeatures.splice(i, 1);
         }
       }

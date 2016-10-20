@@ -21,6 +21,11 @@ function CanvasFeatures(geojson) {
     
     if( this.geojson ) {
         for( var i = 0; i < this.geojson.features.length; i++ ) {
+            
+            if (!this.geojson.features[i].hasOwnProperty('id') || this.geojson.features[i].id === null) {
+              this.geojson.features[i].id = i;
+            }
+
             this.canvasFeatures.push(new CanvasFeature(this.geojson.features[i]));
         }
     }
