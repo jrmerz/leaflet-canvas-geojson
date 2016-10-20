@@ -70,7 +70,7 @@ module.exports = function(layer) {
     }
 
     var features = this.intersectsBbox([[bounds.getWest(), bounds.getSouth()], [bounds.getEast(), bounds.getNorth()]], null, null, null);
-    this.redrawFeatures(features);
+    this.redrawFeatures(this.features);
   },
 
   layer.redrawFeatures = function(features) {
