@@ -1,7 +1,7 @@
 var RTree = require('rtree');
 
 
-/** 
+/**
  * Handle mouse intersection events
  * e - leaflet event
  **/
@@ -56,7 +56,8 @@ function intersectsBbox(bbox, precision, center, containerPoint) {
 
 function onIntersectsListCreated(e, intersects) {
   if( e.type == 'click' && this.onClick ) {
-    this.onClick(intersects);
+    var latlng = e.latlng;
+    this.onClick(intersects, latlng);
     return;
   }
 
@@ -90,7 +91,7 @@ function rebuild(clFeatures) {
   var features = [];
 
   for( var i = 0; i < clFeatures.length; i++ ) {
-    features.push(clFeatures[i]._rtreeGeojson); 
+    features.push(clFeatures[i]._rtreeGeojson);
     clFeatures[i].order = i;
   }
 
