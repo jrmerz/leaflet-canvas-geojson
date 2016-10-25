@@ -1,7 +1,7 @@
 var RTree = require('rtree');
 
 
-/** 
+/**
  * Handle mouse intersection events
  * e - leaflet event
  **/
@@ -37,8 +37,10 @@ function intersectsBbox(bbox, precision, center, containerPoint) {
 
     for( i = 0; i < features.length; i++ ) {
       clFeature = this.getCanvasFeatureById(features[i].properties.id);
+
       if( !clFeature ) continue;
       if( !clFeature.visible ) continue;
+      
       clFeatures.push(clFeature);
     }
 
@@ -46,7 +48,7 @@ function intersectsBbox(bbox, precision, center, containerPoint) {
     if( precision ) {
       for( var i = clFeatures.length - 1; i >= 0; i-- ) {
         f = clFeatures[i];
-        if( !this.utils.geometryWithinRadius(f._rtreeGeojson.geometry, f.getCanvasXY(), center, containerPoint, precision) ) {
+        if(f && !this.utils.geometryWithinRadius(f._rtreeGeojson.geometry, f.getCanvasXY(), center, containerPoint, precision) ) {
           clFeatures.splice(i, 1);
         }
       }
@@ -57,7 +59,8 @@ function intersectsBbox(bbox, precision, center, containerPoint) {
 
 function onIntersectsListCreated(e, intersects) {
   if( e.type == 'click' && this.onClick ) {
-    this.onClick(intersects);
+    var latlng = e.latlng;
+    this.onClick(intersects, latlng);
     return;
   }
 
@@ -91,7 +94,7 @@ function rebuild(clFeatures) {
   var features = [];
 
   for( var i = 0; i < clFeatures.length; i++ ) {
-    features.push(clFeatures[i]._rtreeGeojson); 
+    features.push(clFeatures[i]._rtreeGeojson);
     clFeatures[i].order = i;
   }
 

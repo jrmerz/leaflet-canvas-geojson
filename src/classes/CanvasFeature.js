@@ -14,6 +14,10 @@ function CanvasFeature(geojson, id) {
         canvasXY : null,
         // zoom level canvasXY points are calculated to
         zoom : -1
+    };
+
+    if (this.id === null || this.id === undefined) {
+      this.id = geojson.id
     }
     
     // performance flag, will keep invisible features for recalc 
@@ -111,13 +115,13 @@ function CanvasFeature(geojson, id) {
     
     if( geojson.geometry ) {
         this.geojson = geojson;
-        this.id = id || geojson.properties.id;
+        if (this.id === undefined) return;
     } else {
         this.geojson = {
             type : 'Feature',
             geometry : geojson,
             properties : {
-                id : id
+                id : this.id
             }
         }
         this.id = id;
@@ -131,7 +135,7 @@ function CanvasFeature(geojson, id) {
             type : 'Feature',
             geometry : this.geojson.geometry,
             properties : {
-                id : id || this.geojson.properties.id
+                id : this.id || this.geojson.properties.id
             }
         }
     }

@@ -19,13 +19,17 @@ module.exports = function(layer) {
     }
 
     var diff = null;
-    var center = this._map.getCenter();
+        map = this._map,
+        center = map.getCenter();
 
     if( (e && e.type == 'moveend') || (e && e.type == 'move' && this.animating) ) {
+      if (this.lastCenterLL === null) {
+        this.lastCenterLL = map._initialCenter;
+      }
       var pt = this._map.latLngToContainerPoint(center);
 
       if( this.lastCenterLL ) {
-        var lastXy = this._map.latLngToContainerPoint(this.lastCenterLL);
+        var lastXy = map.latLngToContainerPoint(this.lastCenterLL);
         diff = {
           x : lastXy.x - pt.x,
           y : lastXy.y - pt.y
