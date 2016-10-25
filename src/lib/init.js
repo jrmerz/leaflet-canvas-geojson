@@ -3,7 +3,7 @@ var RTree = require('rtree');
 var count = 0;
 
 module.exports = function(layer) {
-    
+
     layer.initialize = function(options) {
         // list of geojson features to draw
         //   - these will draw in order
@@ -16,7 +16,7 @@ module.exports = function(layer) {
 
         // used to calculate pixels moved from center
         this.lastCenterLL = null;
-        
+
         this.moving = false;
         this.zooming = false;
         // TODO: make this work
@@ -44,7 +44,7 @@ module.exports = function(layer) {
     };
 
     intersectUtils(layer);
-    
+
     layer.onAdd = function(map) {
         this._map = map;
 
@@ -88,8 +88,13 @@ module.exports = function(layer) {
         if( this.zIndex !== undefined ) {
             this.setZIndex(this.zIndex);
         }
+        //re-display layer if it's been removed and then re-added
+        if (this._hasBeenRemoved === true) {
+            this.render();
+            this._hasBeenRemoved = false;
+        }
     }
-    
+
     layer.onRemove = function(map) {
         this._container.parentNode.removeChild(this._container);
         map.off({
@@ -103,6 +108,8 @@ module.exports = function(layer) {
             'mousemove' : this.intersects,
             'click'     : this.intersects
         }, this);
+
+        this._hasBeenRemoved = true;
     }
 
     layer.resizeTimer = -1;
@@ -146,7 +153,7 @@ function endZoom() {
 function moveStart() {
     if( this.moving ) return;
     this.moving = true;
-    
+
     //if( !this.allowPanRendering ) return;
     return;
     // window.requestAnimationFrame(frameRender.bind(this));
@@ -162,16 +169,16 @@ function frameRender() {
 
     var t = new Date().getTime();
     this.render();
-    
+
     if( new Date().getTime() - t > 75 ) {
         if( this.debug ) {
             console.log('Disabled rendering while paning');
         }
-        
+
         this.allowPanRendering = false;
         return;
     }
-    
+
     setTimeout(function(){
         if( !this.moving ) return;
         window.requestAnimationFrame(frameRender.bind(this));

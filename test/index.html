@@ -26,9 +26,8 @@
   <body>
 
     <div id="map"></div>
-    <script src="sample-geojson.js"></script>
     <script>
-      var map = L.map('map').setView([39.74739, -105], 13);
+      var map = L.map('map').setView([0, 0], 2);
 
       // add an OpenStreetMap tile layer
       L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png', {
@@ -40,10 +39,26 @@
           debugger;
         }
       });
-      markerLayer.addTo(map);
-      
-      markerLayer.addCanvasFeatures(L.CanvasFeatureFactory(geojsonData));
-      markerLayer.render();
+
+      getGeojson();
+
+      function getGeojson() {
+        $.ajax({
+            //sample data from http://geojson.xyz
+            url: 'https://d2ad6b4ur7yvpq.cloudfront.net/naturalearth-3.3.0/ne_50m_geography_regions_polys.geojson',
+            type: 'GET',
+            success: function(data){
+                addCanvas(data)
+            }
+        })
+      };
+
+      //callback for ajax request
+      function addCanvas(geojsonData) {
+        markerLayer.addTo(map);
+        markerLayer.addCanvasFeatures(L.CanvasFeatureFactory(geojsonData));
+        markerLayer.render();
+      };
      </script>
   </body>
 </html>
