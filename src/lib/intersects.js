@@ -37,6 +37,7 @@ function intersectsBbox(bbox, precision, center, containerPoint) {
 
     for( i = 0; i < features.length; i++ ) {
       clFeature = this.getCanvasFeatureById(features[i].properties.id);
+      if( !clFeature ) continue;
       if( !clFeature.visible ) continue;
       clFeatures.push(clFeature);
     }

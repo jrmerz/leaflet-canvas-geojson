@@ -83,6 +83,7 @@ require('./lib/init')(layer);
 require('./lib/redraw')(layer);
 require('./lib/addFeature')(layer);
 require('./lib/toCanvasXY')(layer);
+require('./lib/controls')(layer);
 
 L.CanvasFeatureFactory = require('./classes/factory');
 L.CanvasFeature = CanvasFeature;

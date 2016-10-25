@@ -7,26 +7,26 @@ module.exports = function(layer) {
 
         if( geojson.type == 'Point' ) {
 
-        canvasXY = this._map.latLngToContainerPoint([
-            geojson.coordinates[1],
-            geojson.coordinates[0]
-        ]);
+            canvasXY = this._map.latLngToContainerPoint([
+                geojson.coordinates[1],
+                geojson.coordinates[0]
+            ]);
 
-        if( feature.size ) {
-            canvasXY[0] = canvasXY[0] - feature.size / 2;
-            canvasXY[1] = canvasXY[1] - feature.size / 2;
-        }
+            // if( feature.size ) {
+            //     canvasXY.x = canvasXY.x - feature.size / 2;
+            //     canvasXY.y = canvasXY.y - feature.size / 2;
+            // }
 
         } else if( geojson.type == 'LineString' ) {
             
-        canvasXY = this.utils.projectLine(geojson.coordinates, this._map);
-        trimCanvasXY(canvasXY);
+            canvasXY = this.utils.projectLine(geojson.coordinates, this._map);
+            trimCanvasXY(canvasXY);
     
         } else if ( geojson.type == 'Polygon' ) {
         
-        canvasXY = this.utils.projectLine(geojson.coordinates[0], this._map);
-        trimCanvasXY(canvasXY);
-        
+            canvasXY = this.utils.projectLine(geojson.coordinates[0], this._map);
+            trimCanvasXY(canvasXY);
+            
         } else if ( geojson.type == 'MultiPolygon' ) {
             canvasXY = [];
         

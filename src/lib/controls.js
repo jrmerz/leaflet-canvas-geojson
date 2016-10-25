@@ -1,24 +1,25 @@
 module.exports = function(layer) {
-    layer.prototype.removeAll = function() {
+    layer.removeAll = function() {
         this.features = [];
         this.featureIndex = {};
         this.intersectList = [];
+        this.rebuildIndex([]);
         this.reset();
     }
     
-    layer.prototype.hide = function() {
+    layer.hide = function() {
         this._canvas.style.display = 'none';
         this.showing = false;
     };
 
-    layer.prototype.show = function() {
+    layer.show = function() {
         this._canvas.style.display = 'block';
         this.showing = true;
-        this.redraw();
+        if( this._map ) this.redraw();
     };
 
 
-    layer.prototype.setZIndex = function(index) {
+    layer.setZIndex = function(index) {
         this.zIndex = index;
         if( this._container ) {
             this._container.style.zIndex = index;

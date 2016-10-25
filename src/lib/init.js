@@ -5,8 +5,6 @@ var count = 0;
 module.exports = function(layer) {
     
     layer.initialize = function(options) {
-        this.showing = true;
-
         // list of geojson features to draw
         //   - these will draw in order
         this.features = [];
@@ -41,6 +39,8 @@ module.exports = function(layer) {
         // set canvas and canvas context shortcuts
         this._canvas = createCanvas(options);
         this._ctx = this._canvas.getContext('2d');
+
+        this.show();
     };
 
     intersectUtils(layer);
@@ -77,6 +77,7 @@ module.exports = function(layer) {
             'zoomend'   : endZoom,
         //    'movestart' : moveStart,
             'moveend'   : moveEnd,
+            'move'      : this.render,
             'mousemove' : this.intersects,
             'click'     : this.intersects
         }, this);
@@ -96,6 +97,7 @@ module.exports = function(layer) {
             'resize'    : this.onResize,
          //   'movestart' : moveStart,
             'moveend'   : moveEnd,
+            'move'      : this.render,
             'zoomstart' : startZoom,
             'zoomend'   : endZoom,
             'mousemove' : this.intersects,
@@ -103,16 +105,17 @@ module.exports = function(layer) {
         }, this);
     }
 
-    var resizeTimer = -1;
+    layer.resizeTimer = -1;
     layer.onResize = function() {
-        if( resizeTimer !== -1 ) clearTimeout(resizeTimer);
+        if( this.resizeTimer !== -1 ) clearTimeout(this.resizeTimer);
+        var ref = this;
 
-        resizeTimer = setTimeout(function(){
-            resizeTimer = -1;
-            this.reset();
-            this.clearCache();
-            this.render();
-        }.bind(this), 100);
+        this.resizeTimer = setTimeout(function(){
+            ref.resizeTimer = -1;
+            ref.reset();
+            ref.clearCache();
+            ref.render();
+        }, 100);
     }
 }
 

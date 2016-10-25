@@ -3,7 +3,13 @@ var reschedule = null;
 
 module.exports = function(layer) {
   layer.render = function(e) {
+    if( !this.showing ) return;
+
     if( !this.allowPanRendering && this.moving ) {
+      return;
+    }
+
+    if( e && e.type == 'move' && !this.animating ) {
       return;
     }
 
@@ -15,7 +21,7 @@ module.exports = function(layer) {
     var diff = null;
     var center = this._map.getCenter();
 
-    if( e && e.type == 'moveend' ) {
+    if( (e && e.type == 'moveend') || (e && e.type == 'move' && this.animating) ) {
       var pt = this._map.latLngToContainerPoint(center);
 
       if( this.lastCenterLL ) {
@@ -43,16 +49,12 @@ module.exports = function(layer) {
   layer.redraw = function(diff) {
     if( !this.showing ) return;
 
-    // if( running ) {
-    //   reschedule = true;
-    //   return;
-    // }
-    // running = true;
-
     // objects should keep track of last bbox and zoom of map
     // if this hasn't changed the ll -> container pt is not needed
     var bounds = this._map.getBounds();
     var zoom = this._map.getZoom();
+
+    var features = this.intersectsBbox([[bounds.getWest(), bounds.getSouth()], [bounds.getEast(), bounds.getNorth()]], null, null, null);
 
     var f, i, subfeature, j;
     for( i = 0; i < this.features.length; i++ ) {
@@ -69,7 +71,6 @@ module.exports = function(layer) {
       }
     }
 
-    var features = this.intersectsBbox([[bounds.getWest(), bounds.getSouth()], [bounds.getEast(), bounds.getNorth()]], null, null, null);
     this.redrawFeatures(features);
   },
 
