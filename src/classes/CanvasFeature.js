@@ -1,3 +1,5 @@
+var guid = require('node-uuid');
+
 function CanvasFeature(geojson, id) {
     
     // radius for point features
@@ -16,8 +18,12 @@ function CanvasFeature(geojson, id) {
         zoom : -1
     };
 
-    if (this.id === null || this.id === undefined) {
-      this.id = geojson.id
+    this.id = id;
+    if( this.id === null || this.id === undefined ) {
+      this.id = geojson.id;
+      if( this.id === null || this.id === undefined ) {
+          this.id = guid.v4();
+      }
     }
     
     // performance flag, will keep invisible features for recalc 
@@ -115,8 +121,7 @@ function CanvasFeature(geojson, id) {
     
     if( geojson.geometry ) {
         this.geojson = geojson;
-        if (this.id === undefined) return;
-    } else {
+    } else if( geojson.coordinates || geojson.type === 'GeometryCollection' ) {
         this.geojson = {
             type : 'Feature',
             geometry : geojson,
@@ -125,6 +130,8 @@ function CanvasFeature(geojson, id) {
             }
         }
         this.id = id;
+    } else {
+        throw new Error(`Invalid GeoJSON:\n${JSON.stringify(geojson,'  ','  ')}`);
     }
 
     // points have to be reprojected w/ buffer after zoom

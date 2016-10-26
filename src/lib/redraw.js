@@ -18,7 +18,7 @@ module.exports = function(layer) {
         t = new Date().getTime();
     }
 
-    var diff = null;
+    var diff = null,
         map = this._map,
         center = map.getCenter();
 

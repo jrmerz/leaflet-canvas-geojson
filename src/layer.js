@@ -78,7 +78,6 @@ function CanvasLayer() {
 
 var layer = new CanvasLayer();
 
-
 require('./lib/init')(layer);
 require('./lib/redraw')(layer);
 require('./lib/addFeature')(layer);
