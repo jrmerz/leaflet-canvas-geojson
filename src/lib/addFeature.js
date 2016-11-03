@@ -4,11 +4,6 @@ var CanvasFeatures = require('../classes/CanvasFeatures');
 module.exports = function(layer) {
   layer.addCanvasFeatures = function(features) {
     for( var i = 0; i < features.canvasFeatures.length; i++ ) {
-
-      if (features.canvasFeatures[i].id === undefined || features.canvasFeatures[i].id === null) {
-        features.canvasFeatures[i].id = i;
-      }
-
       this.addCanvasFeature(features.canvasFeatures[i], false, null, false);
     }
 

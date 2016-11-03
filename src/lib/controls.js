@@ -13,9 +13,15 @@ module.exports = function(layer) {
     };
 
     layer.show = function() {
-        this._canvas.style.display = 'block';
         this.showing = true;
-        if( this._map ) this.redraw();
+        this._canvas.style.display = 'block';
+
+        if( this._map ) {
+            this.clearCanvas();
+            this.reset();
+            this.clearCache();
+            this.render();
+        }
     };
 
 

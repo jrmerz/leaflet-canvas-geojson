@@ -45,6 +45,10 @@ module.exports = function(layer) {
 
     intersectUtils(layer);
 
+    layer.onShow = function() {
+        console.log('foo');
+    }
+
     layer.onAdd = function(map) {
         this._map = map;
 
@@ -71,13 +75,11 @@ module.exports = function(layer) {
         // }
 
         map.on({
-            'viewreset' : this.onResize,
-            'resize'    : this.onResize,
+            'resize'    : onResize,
             'zoomstart' : startZoom,
             'zoomend'   : endZoom,
-        //    'movestart' : moveStart,
             'moveend'   : moveEnd,
-            'move'      : this.render,
+            'move'      : scheduleMoveRender,
             'mousemove' : this.intersects,
             'click'     : this.intersects
         }, this);
@@ -88,6 +90,7 @@ module.exports = function(layer) {
         if( this.zIndex !== undefined ) {
             this.setZIndex(this.zIndex);
         }
+
         //re-display layer if it's been removed and then re-added
         if (this._hasBeenRemoved === true) {
             this.render();
@@ -98,11 +101,9 @@ module.exports = function(layer) {
     layer.onRemove = function(map) {
         this._container.parentNode.removeChild(this._container);
         map.off({
-            'viewreset' : this.onResize,
-            'resize'    : this.onResize,
-         //   'movestart' : moveStart,
+            'resize'    : onResize,
             'moveend'   : moveEnd,
-            'move'      : this.render,
+            'move'      : scheduleMoveRender,
             'zoomstart' : startZoom,
             'zoomend'   : endZoom,
             'mousemove' : this.intersects,
@@ -110,19 +111,6 @@ module.exports = function(layer) {
         }, this);
 
         this._hasBeenRemoved = true;
-    }
-
-    layer.resizeTimer = -1;
-    layer.onResize = function() {
-        if( this.resizeTimer !== -1 ) clearTimeout(this.resizeTimer);
-        var ref = this;
-
-        this.resizeTimer = setTimeout(function(){
-            ref.resizeTimer = -1;
-            ref.reset();
-            ref.clearCache();
-            ref.render();
-        }, 100);
     }
 }
 
@@ -143,20 +131,24 @@ function startZoom() {
     this.zooming = true;
 }
 
+function onResize() {
+    this.reset();
+    this.render();
+}
+
 function endZoom() {
-    this._canvas.style.visibility = 'visible';
-    this.zooming = false;
-    this.clearCache();
-    setTimeout(this.render.bind(this), 50);
+    setTimeout(function(){
+        this.zooming = false;
+        this._canvas.style.visibility = 'visible';
+        this.reset();
+        this.clearCache();
+        this.render();
+    }.bind(this), 100);
 }
 
 function moveStart() {
-    if( this.moving ) return;
     this.moving = true;
-
-    //if( !this.allowPanRendering ) return;
     return;
-    // window.requestAnimationFrame(frameRender.bind(this));
 }
 
 function moveEnd(e) {
@@ -164,23 +156,15 @@ function moveEnd(e) {
     this.render(e);
 };
 
-function frameRender() {
-    if( !this.moving ) return;
+function scheduleMoveRender() {
+    if( !this.animating ) return;
+    if( this.moveRenderScheduled ) return;
+    this.moveRenderScheduled = true;
 
-    var t = new Date().getTime();
-    this.render();
-
-    if( new Date().getTime() - t > 75 ) {
-        if( this.debug ) {
-            console.log('Disabled rendering while paning');
-        }
-
-        this.allowPanRendering = false;
-        return;
-    }
-
-    setTimeout(function(){
-        if( !this.moving ) return;
-        window.requestAnimationFrame(frameRender.bind(this));
-    }.bind(this), 750);
+    window.requestAnimationFrame(function() {
+        window.requestAnimationFrame(function() {
+            this.render();
+            this.moveRenderScheduled = false;
+        }.bind(this));
+    }.bind(this));
 }

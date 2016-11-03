@@ -50,7 +50,42 @@ function CanvasLayer() {
     var topLeft = this._map.containerPointToLayerPoint([0, 0]);
     this._canvas.style.top = topLeft.y+'px';
     this._canvas.style.left = topLeft.x+'px';
-    //L.DomUtil.setPosition(this._canvas, topLeft);
+
+    // if this was a simple pan event (a diff was provided) and we did not reproject
+    // move the feature by diff x/y
+    if( this.lastTL ) {
+      var diff = this._map.latLngToContainerPoint(this.lastTL);
+      var i, canvasFeature, geojson, xy;
+
+      for( i = 0; i < this.features.length; i++ ) {
+        canvasFeature = this.features[i];
+        geojson = canvasFeature.geojson.geometry;
+        xy = canvasFeature.getCanvasXY();
+
+        if( !xy ) continue;
+
+        if( geojson.type == 'Point' ) {
+
+          xy.x += diff.x;
+          xy.y += diff.y;
+
+        } else if( geojson.type == 'LineString' ) {
+
+          this.utils.moveLine(xy, diff);
+
+        } else if ( geojson.type == 'Polygon' ) {
+        
+          this.utils.moveLine(xy, diff);
+        
+        } else if ( geojson.type == 'MultiPolygon' ) {
+          for( var j = 0; j < xy.length; j++ ) {
+            this.utils.moveLine(xy[j], diff);
+          }
+        }
+      }
+    }
+
+    this.lastTL = this._map.containerPointToLatLng([0, 0]);
   }
 
   // clear each features cache

@@ -18,39 +18,17 @@ module.exports = function(layer) {
         t = new Date().getTime();
     }
 
-    var diff = null,
-        map = this._map,
-        center = map.getCenter();
-
-    if( (e && e.type == 'moveend') || (e && e.type == 'move' && this.animating) ) {
-      if (this.lastCenterLL === null) {
-        this.lastCenterLL = map._initialCenter;
-      }
-      var pt = this._map.latLngToContainerPoint(center);
-
-      if( this.lastCenterLL ) {
-        var lastXy = map.latLngToContainerPoint(this.lastCenterLL);
-        diff = {
-          x : lastXy.x - pt.x,
-          y : lastXy.y - pt.y
-        }
-      }
-    }
-    
-    this.lastCenterLL = center;
-
     if( !this.zooming ) {
-      this.redraw(diff);
+      this.redraw();
     } else {
       this.clearCanvas();
     }
-
   },
     
 
   // redraw all features.  This does not handle clearing the canvas or setting
   // the canvas correct position.  That is handled by render
-  layer.redraw = function(diff) {
+  layer.redraw = function() {
     if( !this.showing ) return;
 
     // objects should keep track of last bbox and zoom of map
@@ -67,11 +45,11 @@ module.exports = function(layer) {
       if( f.isCanvasFeatures ) {
 
         for( j = 0; j < f.canvasFeatures.length; j++ ) {
-          this.prepareForRedraw(f.canvasFeatures[j], bounds, zoom, diff);
+          this.prepareForRedraw(f.canvasFeatures[j], bounds, zoom);
         }
 
       } else {
-        this.prepareForRedraw(f, bounds, zoom, diff);
+        this.prepareForRedraw(f, bounds, zoom);
       }
     }
 
@@ -112,7 +90,7 @@ module.exports = function(layer) {
   }
 
   // redraw an individual feature
-  layer.prepareForRedraw = function(canvasFeature, bounds, zoom, diff) {
+  layer.prepareForRedraw = function(canvasFeature, bounds, zoom) {
     //if( feature.geojson.properties.debug ) debugger;
 
     // ignore anything flagged as hidden
@@ -130,31 +108,6 @@ module.exports = function(layer) {
     var reproject = canvasFeature.requiresReprojection(zoom);
     if( reproject ) {
       this.toCanvasXY(canvasFeature, geojson, zoom);
-    }  // end reproject
-
-    // if this was a simple pan event (a diff was provided) and we did not reproject
-    // move the feature by diff x/y
-    if( diff && !reproject ) {
-      if( geojson.type == 'Point' ) {
-
-        var xy = canvasFeature.getCanvasXY()
-        xy.x += diff.x;
-        xy.y += diff.y;
-
-      } else if( geojson.type == 'LineString' ) {
-
-        this.utils.moveLine(canvasFeature.getCanvasXY(), diff);
-
-      } else if ( geojson.type == 'Polygon' ) {
-      
-        this.utils.moveLine(canvasFeature.getCanvasXY(), diff);
-      
-      } else if ( geojson.type == 'MultiPolygon' ) {
-        var xy = canvasFeature.getCanvasXY();
-        for( var i = 0; i < xy.length; i++ ) {
-          this.utils.moveLine(xy[i], diff);
-        }
-      }
     }
    };
 }
