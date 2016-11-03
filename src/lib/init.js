@@ -45,10 +45,6 @@ module.exports = function(layer) {
 
     intersectUtils(layer);
 
-    layer.onShow = function() {
-        console.log('foo');
-    }
-
     layer.onAdd = function(map) {
         this._map = map;
 
