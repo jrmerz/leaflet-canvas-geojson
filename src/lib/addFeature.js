@@ -45,7 +45,6 @@ module.exports = function(layer) {
   };
   
   layer.removeAll = function() {
-    this.allowPanRendering = true;
     this.features = [];
     this.rebuildIndex(this.features);
   }

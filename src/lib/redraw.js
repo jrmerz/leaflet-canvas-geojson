@@ -3,19 +3,10 @@ var reschedule = null;
 
 module.exports = function(layer) {
   layer.render = function(e) {
-    if( !this.showing ) return;
-
-    if( !this.allowPanRendering && this.moving ) {
-      return;
-    }
+    if( !this.showing || this.moving ) return;
 
     if( e && e.type == 'move' && !this.animating ) {
       return;
-    }
-
-    var t, diff
-    if( this.debug ) {
-        t = new Date().getTime();
     }
 
     if( !this.zooming ) {
@@ -29,8 +20,6 @@ module.exports = function(layer) {
   // redraw all features.  This does not handle clearing the canvas or setting
   // the canvas correct position.  That is handled by render
   layer.redraw = function() {
-    if( !this.showing ) return;
-
     // objects should keep track of last bbox and zoom of map
     // if this hasn't changed the ll -> container pt is not needed
     var bounds = this._map.getBounds();

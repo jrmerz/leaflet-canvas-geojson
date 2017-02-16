@@ -19,8 +19,6 @@ module.exports = function(layer) {
 
         this.moving = false;
         this.zooming = false;
-        // TODO: make this work
-        this.allowPanRendering = false;
 
         // set options
         options = options || {};
@@ -123,8 +121,8 @@ function createCanvas(options) {
 }
 
 function startZoom() {
-    this._canvas.style.visibility = 'hidden';
     this.zooming = true;
+    this._canvas.style.visibility = 'hidden';
 }
 
 function onResize() {

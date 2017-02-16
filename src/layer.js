@@ -60,9 +60,12 @@ function CanvasLayer() {
       for( i = 0; i < this.features.length; i++ ) {
         canvasFeature = this.features[i];
         geojson = canvasFeature.geojson.geometry;
+        
         xy = canvasFeature.getCanvasXY();
-
-        if( !xy ) continue;
+        if( !xy || !canvasFeature.visible ) {
+          if( xy ) feature.clearCache();
+          continue;
+        }
 
         if( geojson.type == 'Point' ) {
 
